@@ -104,7 +104,10 @@ contract LevyContract is ERC721A, Ownable {
      * @dev Initializes the contract by setting the token name and symbol.
      *      Also sets the deployer as the initial owner.
      */
-    constructor() ERC721A("Levy Voucher Qr", "LVQ") Ownable(msg.sender) {}
+    constructor(
+        string memory _name,
+        string memory _symbol
+    ) ERC721A(_name, _symbol) Ownable(msg.sender) {}
 
     /**
      * @notice Mints a new levy voucher.
