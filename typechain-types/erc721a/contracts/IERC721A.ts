@@ -21,58 +21,17 @@ import type {
   TypedLogDescription,
   TypedListener,
   TypedContractMethod,
-} from "../common";
+} from "../../common";
 
-export declare namespace LevyContract {
-  export type UserStruct = {
-    passport: string;
-    name: string;
-    email: string;
-    arrivalDate: BigNumberish;
-  };
-
-  export type UserStructOutput = [
-    passport: string,
-    name: string,
-    email: string,
-    arrivalDate: bigint
-  ] & { passport: string; name: string; email: string; arrivalDate: bigint };
-
-  export type VoucherStruct = {
-    user: LevyContract.UserStruct;
-    voucherCode: string;
-    levyExpiredDate: BigNumberish;
-    levyStatus: BigNumberish;
-  };
-
-  export type VoucherStructOutput = [
-    user: LevyContract.UserStructOutput,
-    voucherCode: string,
-    levyExpiredDate: bigint,
-    levyStatus: bigint
-  ] & {
-    user: LevyContract.UserStructOutput;
-    voucherCode: string;
-    levyExpiredDate: bigint;
-    levyStatus: bigint;
-  };
-}
-
-export interface LevyContractInterface extends Interface {
+export interface IERC721AInterface extends Interface {
   getFunction(
     nameOrSignature:
       | "approve"
       | "balanceOf"
-      | "extendLevy"
       | "getApproved"
-      | "getVoucherData"
       | "isApprovedForAll"
-      | "mintVoucher"
       | "name"
-      | "owner"
       | "ownerOf"
-      | "redeemVoucher"
-      | "renounceOwnership"
       | "safeTransferFrom(address,address,uint256)"
       | "safeTransferFrom(address,address,uint256,bytes)"
       | "setApprovalForAll"
@@ -81,8 +40,6 @@ export interface LevyContractInterface extends Interface {
       | "tokenURI"
       | "totalSupply"
       | "transferFrom"
-      | "transferOwnership"
-      | "verifyVoucher"
   ): FunctionFragment;
 
   getEvent(
@@ -90,12 +47,7 @@ export interface LevyContractInterface extends Interface {
       | "Approval"
       | "ApprovalForAll"
       | "ConsecutiveTransfer"
-      | "OwnershipTransferred"
-      | "Redeemed"
       | "Transfer"
-      | "VoucherExtended"
-      | "VoucherIssued"
-      | "VoucherValidated"
   ): EventFragment;
 
   encodeFunctionData(
@@ -107,38 +59,17 @@ export interface LevyContractInterface extends Interface {
     values: [AddressLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "extendLevy",
-    values: [BytesLike, BigNumberish]
-  ): string;
-  encodeFunctionData(
     functionFragment: "getApproved",
     values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "getVoucherData",
-    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "isApprovedForAll",
     values: [AddressLike, AddressLike]
   ): string;
-  encodeFunctionData(
-    functionFragment: "mintVoucher",
-    values: [LevyContract.VoucherStruct]
-  ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
-  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "ownerOf",
     values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "redeemVoucher",
-    values: [BigNumberish]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "renounceOwnership",
-    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "safeTransferFrom(address,address,uint256)",
@@ -169,45 +100,19 @@ export interface LevyContractInterface extends Interface {
     functionFragment: "transferFrom",
     values: [AddressLike, AddressLike, BigNumberish]
   ): string;
-  encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [AddressLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "verifyVoucher",
-    values: [BytesLike]
-  ): string;
 
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "extendLevy", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getApproved",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "getVoucherData",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "isApprovedForAll",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(
-    functionFragment: "mintVoucher",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "ownerOf", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "redeemVoucher",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "renounceOwnership",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "safeTransferFrom(address,address,uint256)",
     data: BytesLike
@@ -232,14 +137,6 @@ export interface LevyContractInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "transferFrom",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "transferOwnership",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "verifyVoucher",
     data: BytesLike
   ): Result;
 }
@@ -309,32 +206,6 @@ export namespace ConsecutiveTransferEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
-export namespace OwnershipTransferredEvent {
-  export type InputTuple = [previousOwner: AddressLike, newOwner: AddressLike];
-  export type OutputTuple = [previousOwner: string, newOwner: string];
-  export interface OutputObject {
-    previousOwner: string;
-    newOwner: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
-
-export namespace RedeemedEvent {
-  export type InputTuple = [tokenId: BigNumberish, redeemedBy: AddressLike];
-  export type OutputTuple = [tokenId: bigint, redeemedBy: string];
-  export interface OutputObject {
-    tokenId: bigint;
-    redeemedBy: string;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
-
 export namespace TransferEvent {
   export type InputTuple = [
     from: AddressLike,
@@ -353,59 +224,11 @@ export namespace TransferEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
-export namespace VoucherExtendedEvent {
-  export type InputTuple = [voucherHash: BytesLike, extendDate: BigNumberish];
-  export type OutputTuple = [voucherHash: string, extendDate: bigint];
-  export interface OutputObject {
-    voucherHash: string;
-    extendDate: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
-
-export namespace VoucherIssuedEvent {
-  export type InputTuple = [
-    tokenId: BigNumberish,
-    voucherHash: BytesLike,
-    expiryDate: BigNumberish
-  ];
-  export type OutputTuple = [
-    tokenId: bigint,
-    voucherHash: string,
-    expiryDate: bigint
-  ];
-  export interface OutputObject {
-    tokenId: bigint;
-    voucherHash: string;
-    expiryDate: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
-
-export namespace VoucherValidatedEvent {
-  export type InputTuple = [voucherHash: BytesLike, isValid: boolean];
-  export type OutputTuple = [voucherHash: string, isValid: boolean];
-  export interface OutputObject {
-    voucherHash: string;
-    isValid: boolean;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
-
-export interface LevyContract extends BaseContract {
-  connect(runner?: ContractRunner | null): LevyContract;
+export interface IERC721A extends BaseContract {
+  connect(runner?: ContractRunner | null): IERC721A;
   waitForDeployment(): Promise<this>;
 
-  interface: LevyContractInterface;
+  interface: IERC721AInterface;
 
   queryFilter<TCEvent extends TypedContractEvent>(
     event: TCEvent,
@@ -452,19 +275,7 @@ export interface LevyContract extends BaseContract {
 
   balanceOf: TypedContractMethod<[owner: AddressLike], [bigint], "view">;
 
-  extendLevy: TypedContractMethod<
-    [voucherHash: BytesLike, extendDate: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-
   getApproved: TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
-
-  getVoucherData: TypedContractMethod<
-    [voucherHash: BytesLike],
-    [LevyContract.VoucherStructOutput],
-    "view"
-  >;
 
   isApprovedForAll: TypedContractMethod<
     [owner: AddressLike, operator: AddressLike],
@@ -472,25 +283,9 @@ export interface LevyContract extends BaseContract {
     "view"
   >;
 
-  mintVoucher: TypedContractMethod<
-    [voucher: LevyContract.VoucherStruct],
-    [void],
-    "nonpayable"
-  >;
-
   name: TypedContractMethod<[], [string], "view">;
 
-  owner: TypedContractMethod<[], [string], "view">;
-
   ownerOf: TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
-
-  redeemVoucher: TypedContractMethod<
-    [tokenId: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-
-  renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
 
   "safeTransferFrom(address,address,uint256)": TypedContractMethod<
     [from: AddressLike, to: AddressLike, tokenId: BigNumberish],
@@ -503,16 +298,16 @@ export interface LevyContract extends BaseContract {
       from: AddressLike,
       to: AddressLike,
       tokenId: BigNumberish,
-      _data: BytesLike
+      data: BytesLike
     ],
     [void],
     "payable"
   >;
 
   setApprovalForAll: TypedContractMethod<
-    [operator: AddressLike, approved: boolean],
+    [operator: AddressLike, _approved: boolean],
     [void],
-    "view"
+    "nonpayable"
   >;
 
   supportsInterface: TypedContractMethod<
@@ -533,18 +328,6 @@ export interface LevyContract extends BaseContract {
     "payable"
   >;
 
-  transferOwnership: TypedContractMethod<
-    [newOwner: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-
-  verifyVoucher: TypedContractMethod<
-    [voucherHash: BytesLike],
-    [boolean],
-    "view"
-  >;
-
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
   ): T;
@@ -560,22 +343,8 @@ export interface LevyContract extends BaseContract {
     nameOrSignature: "balanceOf"
   ): TypedContractMethod<[owner: AddressLike], [bigint], "view">;
   getFunction(
-    nameOrSignature: "extendLevy"
-  ): TypedContractMethod<
-    [voucherHash: BytesLike, extendDate: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
     nameOrSignature: "getApproved"
   ): TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
-  getFunction(
-    nameOrSignature: "getVoucherData"
-  ): TypedContractMethod<
-    [voucherHash: BytesLike],
-    [LevyContract.VoucherStructOutput],
-    "view"
-  >;
   getFunction(
     nameOrSignature: "isApprovedForAll"
   ): TypedContractMethod<
@@ -584,27 +353,11 @@ export interface LevyContract extends BaseContract {
     "view"
   >;
   getFunction(
-    nameOrSignature: "mintVoucher"
-  ): TypedContractMethod<
-    [voucher: LevyContract.VoucherStruct],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
     nameOrSignature: "name"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "owner"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "ownerOf"
   ): TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
-  getFunction(
-    nameOrSignature: "redeemVoucher"
-  ): TypedContractMethod<[tokenId: BigNumberish], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "renounceOwnership"
-  ): TypedContractMethod<[], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "safeTransferFrom(address,address,uint256)"
   ): TypedContractMethod<
@@ -619,7 +372,7 @@ export interface LevyContract extends BaseContract {
       from: AddressLike,
       to: AddressLike,
       tokenId: BigNumberish,
-      _data: BytesLike
+      data: BytesLike
     ],
     [void],
     "payable"
@@ -627,9 +380,9 @@ export interface LevyContract extends BaseContract {
   getFunction(
     nameOrSignature: "setApprovalForAll"
   ): TypedContractMethod<
-    [operator: AddressLike, approved: boolean],
+    [operator: AddressLike, _approved: boolean],
     [void],
-    "view"
+    "nonpayable"
   >;
   getFunction(
     nameOrSignature: "supportsInterface"
@@ -650,12 +403,6 @@ export interface LevyContract extends BaseContract {
     [void],
     "payable"
   >;
-  getFunction(
-    nameOrSignature: "transferOwnership"
-  ): TypedContractMethod<[newOwner: AddressLike], [void], "nonpayable">;
-  getFunction(
-    nameOrSignature: "verifyVoucher"
-  ): TypedContractMethod<[voucherHash: BytesLike], [boolean], "view">;
 
   getEvent(
     key: "Approval"
@@ -679,46 +426,11 @@ export interface LevyContract extends BaseContract {
     ConsecutiveTransferEvent.OutputObject
   >;
   getEvent(
-    key: "OwnershipTransferred"
-  ): TypedContractEvent<
-    OwnershipTransferredEvent.InputTuple,
-    OwnershipTransferredEvent.OutputTuple,
-    OwnershipTransferredEvent.OutputObject
-  >;
-  getEvent(
-    key: "Redeemed"
-  ): TypedContractEvent<
-    RedeemedEvent.InputTuple,
-    RedeemedEvent.OutputTuple,
-    RedeemedEvent.OutputObject
-  >;
-  getEvent(
     key: "Transfer"
   ): TypedContractEvent<
     TransferEvent.InputTuple,
     TransferEvent.OutputTuple,
     TransferEvent.OutputObject
-  >;
-  getEvent(
-    key: "VoucherExtended"
-  ): TypedContractEvent<
-    VoucherExtendedEvent.InputTuple,
-    VoucherExtendedEvent.OutputTuple,
-    VoucherExtendedEvent.OutputObject
-  >;
-  getEvent(
-    key: "VoucherIssued"
-  ): TypedContractEvent<
-    VoucherIssuedEvent.InputTuple,
-    VoucherIssuedEvent.OutputTuple,
-    VoucherIssuedEvent.OutputObject
-  >;
-  getEvent(
-    key: "VoucherValidated"
-  ): TypedContractEvent<
-    VoucherValidatedEvent.InputTuple,
-    VoucherValidatedEvent.OutputTuple,
-    VoucherValidatedEvent.OutputObject
   >;
 
   filters: {
@@ -755,28 +467,6 @@ export interface LevyContract extends BaseContract {
       ConsecutiveTransferEvent.OutputObject
     >;
 
-    "OwnershipTransferred(address,address)": TypedContractEvent<
-      OwnershipTransferredEvent.InputTuple,
-      OwnershipTransferredEvent.OutputTuple,
-      OwnershipTransferredEvent.OutputObject
-    >;
-    OwnershipTransferred: TypedContractEvent<
-      OwnershipTransferredEvent.InputTuple,
-      OwnershipTransferredEvent.OutputTuple,
-      OwnershipTransferredEvent.OutputObject
-    >;
-
-    "Redeemed(uint256,address)": TypedContractEvent<
-      RedeemedEvent.InputTuple,
-      RedeemedEvent.OutputTuple,
-      RedeemedEvent.OutputObject
-    >;
-    Redeemed: TypedContractEvent<
-      RedeemedEvent.InputTuple,
-      RedeemedEvent.OutputTuple,
-      RedeemedEvent.OutputObject
-    >;
-
     "Transfer(address,address,uint256)": TypedContractEvent<
       TransferEvent.InputTuple,
       TransferEvent.OutputTuple,
@@ -786,39 +476,6 @@ export interface LevyContract extends BaseContract {
       TransferEvent.InputTuple,
       TransferEvent.OutputTuple,
       TransferEvent.OutputObject
-    >;
-
-    "VoucherExtended(bytes32,uint256)": TypedContractEvent<
-      VoucherExtendedEvent.InputTuple,
-      VoucherExtendedEvent.OutputTuple,
-      VoucherExtendedEvent.OutputObject
-    >;
-    VoucherExtended: TypedContractEvent<
-      VoucherExtendedEvent.InputTuple,
-      VoucherExtendedEvent.OutputTuple,
-      VoucherExtendedEvent.OutputObject
-    >;
-
-    "VoucherIssued(uint256,bytes32,uint256)": TypedContractEvent<
-      VoucherIssuedEvent.InputTuple,
-      VoucherIssuedEvent.OutputTuple,
-      VoucherIssuedEvent.OutputObject
-    >;
-    VoucherIssued: TypedContractEvent<
-      VoucherIssuedEvent.InputTuple,
-      VoucherIssuedEvent.OutputTuple,
-      VoucherIssuedEvent.OutputObject
-    >;
-
-    "VoucherValidated(bytes32,bool)": TypedContractEvent<
-      VoucherValidatedEvent.InputTuple,
-      VoucherValidatedEvent.OutputTuple,
-      VoucherValidatedEvent.OutputObject
-    >;
-    VoucherValidated: TypedContractEvent<
-      VoucherValidatedEvent.InputTuple,
-      VoucherValidatedEvent.OutputTuple,
-      VoucherValidatedEvent.OutputObject
     >;
   };
 }
