@@ -6,7 +6,7 @@ import keccak256 from "keccak256";
 import CollectionConfig from "../config/CollectionConfig";
 import ContractArguments from "../config/ContractArguments";
 import { NftContractType } from "../lib/NftContractProvider";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 
 chai.use(ChaiAsPromised);
 
