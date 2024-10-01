@@ -1,7 +1,6 @@
 import chai, { expect } from "chai";
 import ChaiAsPromised from "chai-as-promised";
 import { ethers } from "hardhat";
-import { MerkleTree } from "merkletreejs";
 import keccak256 from "keccak256";
 import { AbiCoder } from "ethers";
 import CollectionConfig from "../config/CollectionConfig";
