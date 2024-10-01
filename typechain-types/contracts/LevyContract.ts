@@ -134,7 +134,7 @@ export interface LevyContractInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "redeemVoucher",
-    values: [BigNumberish]
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
@@ -485,7 +485,7 @@ export interface LevyContract extends BaseContract {
   ownerOf: TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
 
   redeemVoucher: TypedContractMethod<
-    [tokenId: BigNumberish],
+    [voucherHash: BytesLike],
     [void],
     "nonpayable"
   >;
@@ -541,8 +541,8 @@ export interface LevyContract extends BaseContract {
 
   verifyVoucher: TypedContractMethod<
     [voucherHash: BytesLike],
-    [boolean],
-    "view"
+    [void],
+    "nonpayable"
   >;
 
   getFunction<T extends ContractMethod = ContractMethod>(
@@ -601,7 +601,7 @@ export interface LevyContract extends BaseContract {
   ): TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
   getFunction(
     nameOrSignature: "redeemVoucher"
-  ): TypedContractMethod<[tokenId: BigNumberish], [void], "nonpayable">;
+  ): TypedContractMethod<[voucherHash: BytesLike], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "renounceOwnership"
   ): TypedContractMethod<[], [void], "nonpayable">;
@@ -655,7 +655,7 @@ export interface LevyContract extends BaseContract {
   ): TypedContractMethod<[newOwner: AddressLike], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "verifyVoucher"
-  ): TypedContractMethod<[voucherHash: BytesLike], [boolean], "view">;
+  ): TypedContractMethod<[voucherHash: BytesLike], [void], "nonpayable">;
 
   getEvent(
     key: "Approval"

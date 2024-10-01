@@ -3,6 +3,7 @@ import ChaiAsPromised from "chai-as-promised";
 import { ethers } from "hardhat";
 import { MerkleTree } from "merkletreejs";
 import keccak256 from "keccak256";
+import { AbiCoder } from "ethers";
 import CollectionConfig from "../config/CollectionConfig";
 import ContractArguments from "../config/ContractArguments";
 import { NftContractType } from "../lib/NftContractProvider";
@@ -10,14 +11,61 @@ import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 
 chai.use(ChaiAsPromised);
 
-// function getPrice(price: string, mintAmount: number) {
-//   return ethers.parseEther(price).mul(mintAmount);
-// }
-
 describe(CollectionConfig.contractName, async function () {
   let contract!: NftContractType;
   let owner!: SignerWithAddress;
   let other!: SignerWithAddress;
+  const abiCoder = new AbiCoder();
+
+  const voucher = {
+    user: {
+      passport: "A12345678",
+      name: "John Doe",
+      email: "johndoe@example.com",
+      arrivalDate: BigInt(Math.floor(Date.now() / 1000) + 86400), // 1 day from now (Unix timestamp)
+    },
+    voucherCode: "LEVY123456",
+    levyExpiredDate: BigInt(Math.floor(Date.now() / 1000) + 86400 * 60), // 60 days from now
+    levyStatus: 0, // Active
+  };
+
+  const voucherHash = keccak256(
+    abiCoder.encode(
+      ["string", "string", "string", "string", "uint256"],
+      [
+        voucher.user.passport,
+        voucher.user.name,
+        voucher.user.email,
+        voucher.voucherCode,
+        voucher.levyExpiredDate,
+      ]
+    )
+  );
+
+  const voucherError = {
+    user: {
+      passport: "A123456789",
+      name: "John Doe Romlah",
+      email: "johndoe123@example.com",
+      arrivalDate: BigInt(Math.floor(Date.now() / 1000) + 86401), // 1 day from now (Unix timestamp)
+    },
+    voucherCode: "LEVY123456789",
+    levyExpiredDate: BigInt(Math.floor(Date.now() / 1000) + 86401 * 60), // 60 days from now
+    levyStatus: 2, // Expired
+  };
+
+  const voucherHashError = keccak256(
+    abiCoder.encode(
+      ["string", "string", "string", "string", "uint256"],
+      [
+        voucherError.user.passport,
+        voucherError.user.name,
+        voucherError.user.email,
+        voucherError.voucherCode,
+        voucherError.levyExpiredDate,
+      ]
+    )
+  );
 
   before(async function () {
     [owner, other] = await ethers.getSigners();
@@ -34,328 +82,161 @@ describe(CollectionConfig.contractName, async function () {
     await contract.waitForDeployment();
   });
 
-  // it("Check initial data", async function () {
-  //   expect(await contract.name()).to.equal("Test Reality Chain Avatar");
-  //   expect(await contract.symbol()).to.equal("TRCA");
+  it("Check initial data", async function () {
+    expect(await contract.name()).to.equal(CollectionConfig.tokenName);
+    expect(await contract.symbol()).to.equal(CollectionConfig.tokenSymbol);
 
-  //   // Legendary avatar spesification
-  //   expect((await contract.avatar(0)).supply).to.equal(50);
-  //   expect((await contract.avatar(0)).cost).to.equal(utils.parseEther("0.05"));
-  //   expect((await contract.avatar(0)).minted).to.equal(1);
+    expect(await contract.totalSupply()).to.equal(BigInt(0));
+  });
 
-  //   // Epic avatar spesification
-  //   expect((await contract.avatar(1)).supply).to.equal(950);
-  //   expect((await contract.avatar(1)).cost).to.equal(utils.parseEther("0.03"));
-  //   expect((await contract.avatar(1)).minted).to.equal(1);
+  it("Owner only functions", async function () {
+    await expect(
+      contract.connect(other).mintVoucher(voucher)
+    ).to.be.rejectedWith(`OwnableUnauthorizedAccount("${other.address}")`);
 
-  //   // Rare avatar spesification
-  //   expect((await contract.avatar(2)).supply).to.equal(2000);
-  //   expect((await contract.avatar(2)).cost).to.equal(utils.parseEther("0.01"));
-  //   expect((await contract.avatar(2)).minted).to.equal(1);
+    await expect(
+      contract.connect(other).redeemVoucher(voucherHashError)
+    ).to.be.rejectedWith(`OwnableUnauthorizedAccount("${other.address}")`);
 
-  //   expect(await contract.totalSupply()).to.equal(0);
-  //   expect(await contract.balanceOf(await owner.getAddress())).to.equal(0);
-  //   expect(await contract.balanceOf(await legendaryMinter.getAddress())).to.equal(0);
-  //   expect(await contract.balanceOf(await epicMinter.getAddress())).to.equal(0);
-  //   expect(await contract.balanceOf(await rareMinter.getAddress())).to.equal(0);
+    await expect(
+      contract.connect(other).extendLevy(voucherHash, BigInt(1))
+    ).to.be.rejectedWith(`OwnableUnauthorizedAccount("${other.address}")`);
+  });
 
-  //   // keep tracking that there is no token ID = 0
-  //   await expect(contract.tokenURI(0)).to.be.revertedWith("ERC721: invalid token ID");
-  // });
+  it("Mint Voucher Levy", async function () {
+    await contract.connect(owner).mintVoucher(voucher);
 
-  // it("Before any else", async function () {
-  //   // nobody should be able to mint because merkle root is not in set
-  //   // Legendary mint
-  //   await expect(
-  //     contract.connect(legendaryMinter).mint(0, [], "")
-  //   ).to.be.revertedWith("InvalidProof");
+    expect(await contract.totalSupply()).to.equal(BigInt(1));
+  });
 
-  //   // Epic mint
-  //   await expect(
-  //     contract.connect(epicMinter).mint(1, [], "")
-  //   ).to.be.revertedWith("InvalidProof");
+  it("Should Error if voucher already exists", async function () {
+    await expect(
+      contract.connect(owner).mintVoucher(voucher)
+    ).to.be.rejectedWith("VoucherAlreadyExists");
+  });
 
-  //   // Rare mint
-  //   await expect(
-  //     contract.connect(rareMinter).mint(2, [], "")
-  //   ).to.be.revertedWith("InvalidProof");
+  it("Should return false from verify voucher cause not mint before", async function () {
+    await expect(
+      contract.connect(owner).verifyVoucher(voucherHashError)
+    ).to.be.rejectedWith("VoucherNotExist");
+  });
 
-  //   await expect(contract.withdraw()).to.be.revertedWith("InsufficientFunds");
-  // });
+  it("Success verify voucher", async function () {
+    await contract.connect(other).verifyVoucher(voucherHash);
+  });
 
-  // it("Owner only functions", async function () {
-  //   await expect(
-  //     contract.connect(legendaryMinter).setMerkleRoot(0, 0x00)
-  //   ).to.be.revertedWith("");
+  it("Check initial data from voucher", async function () {
+    const voucherData = await contract.getVoucherData(voucherHash);
+    expect(voucherData.user.passport).to.equal(voucher.user.passport);
+    expect(voucherData.user.name).to.equal(voucher.user.name);
+    expect(voucherData.user.email).to.equal(voucher.user.email);
+    expect(voucherData.user.arrivalDate).to.equal(
+      BigInt(voucher.user.arrivalDate)
+    );
+    expect(voucherData.voucherCode).to.equal(voucher.voucherCode);
+    expect(voucherData.levyExpiredDate).to.equal(
+      BigInt(voucher.levyExpiredDate)
+    );
+    expect(voucherData.levyStatus).to.equal(BigInt(voucher.levyStatus));
+  });
 
-  //   await expect(
-  //     contract.connect(rareMinter).withdraw()
-  //   ).to.be.revertedWith("Ownable: caller is not the owner");
+  it("Should return error from verify voucher cause expired", async function () {
+    // increase time
+    await ethers.provider.send("evm_increaseTime", [
+      Math.floor(Date.now() / 1000) + 86401 * 60,
+    ]);
+    await ethers.provider.send("evm_mine");
 
-  // });
+    await expect(
+      contract.connect(other).verifyVoucher(voucherHash)
+    ).to.be.rejectedWith("VoucherExpired");
+  });
 
-  // it("Legendary Mint", async function () {
-  //   const whitelistLegendaryAddresses = [
-  //     "0xBcd4042DE499D14e55001CcbB24a551F3b954096",
-  //     "0x71bE63f3384f5fb98995898A86B02Fb2426c5788",
-  //     "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
-  //     "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
-  //     "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
-  //     "0xcd3B766CCDd6AE721141F452C550Ca635964ce71",
-  //     "0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
-  //     "0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
-  //     "0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
-  //     "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
-  //     await legendaryMinter.getAddress(),
-  //   ];
-  //   // setup merkel root
-  //   const leafNodes = whitelistLegendaryAddresses.map((addr) => keccak256(addr));
-  //   const merkleTree = new MerkleTree(leafNodes, keccak256, { sortPairs: true, });
-  //   const rootHash = merkleTree.getHexRoot();
-  //   // Update the root hash
-  //   await (await contract.setMerkleRoot(0, rootHash)).wait();
+  it("Should return error from extend voucher cause date input = 0", async function () {
+    await expect(
+      contract.connect(owner).extendLevy(voucherHash, BigInt(0))
+    ).to.be.rejectedWith("InvalidDate");
+  });
 
-  //   // check merklerooot
-  //   await expect(
-  //     contract
-  //       .connect(epicMinter)
-  //       .mint(0,
-  //         merkleTree.getHexProof(keccak256(await epicMinter.getAddress())),
-  //         "",
-  //         { value: getPrice("0.05", 1) }
-  //       )
-  //   ).to.be.revertedWith("InvalidProof");
-  //   await expect(
-  //     contract
-  //       .connect(rareMinter)
-  //       .mint(0,
-  //         merkleTree.getHexProof(keccak256(await rareMinter.getAddress())),
-  //         "",
-  //         { value: getPrice("0.05", 1) }
-  //       )
-  //   ).to.be.revertedWith("InvalidProof");
+  it("Should return error from extend voucher cause date input < Date Now", async function () {
+    await expect(
+      contract
+        .connect(owner)
+        .extendLevy(
+          voucherHash,
+          BigInt(Math.floor(Date.now() / 1000) + 86401 * 60)
+        )
+    ).to.be.rejectedWith("InvalidDate");
+  });
 
-  //   // check cost
-  //   await expect(
-  //     contract
-  //       .connect(legendaryMinter)
-  //       .mint(0,
-  //         merkleTree.getHexProof(keccak256(await legendaryMinter.getAddress())),
-  //         "",
-  //         { value: getPrice("0.04", 1) }
-  //       )
-  //   ).to.be.revertedWith("InsufficientFunds");
+  it("Should return error from extend voucher cause date input < expired time", async function () {
+    const voucherData = await contract.getVoucherData(voucherHash);
+    const setTime = voucherData.levyExpiredDate - BigInt(60);
+    await expect(
+      contract.connect(owner).extendLevy(voucherHash, setTime)
+    ).to.be.rejectedWith("InvalidDate");
+  });
 
-  //   // minting success
-  //   await contract
-  //     .connect(legendaryMinter)
-  //     .mint(0,
-  //       merkleTree.getHexProof(keccak256(await legendaryMinter.getAddress())),
-  //       "", // this is metadata input CID from IPFS
-  //       { value: getPrice("0.05", 1) }
-  //     );
+  it("Success Extend Levy", async function () {
+    const timeNow = (await ethers.provider.getBlock("latest"))!.timestamp;
+    const setTimeExtend = timeNow + 86400 * 60;
+    await contract
+      .connect(owner)
+      .extendLevy(voucherHash, BigInt(setTimeExtend));
+  });
 
-  //   // try to mint again
-  //   await expect(
-  //     contract
-  //       .connect(legendaryMinter)
-  //       .mint(0,
-  //         merkleTree.getHexProof(keccak256(await legendaryMinter.getAddress())),
-  //         "",
-  //         { value: getPrice("0.05", 1) }
-  //       )
-  //   ).to.be.revertedWith("ExceedeedTokenClaiming");
+  it("Should error Reedem Voucher cause voucher still active", async function () {
+    await expect(
+      contract.connect(owner).redeemVoucher(voucherHash)
+    ).to.be.rejectedWith("VoucherStillActive");
+  });
 
-  //   // check supply
-  //   expect((await contract.avatar(0)).minted).to.equal(2);
-  //   expect(await contract.totalSupply()).to.be.equal(1);
+  it("Success from verify voucher after extend", async function () {
+    await contract.connect(other).verifyVoucher(voucherHash);
+  });
 
-  //   // check balance
-  //   expect(await contract.balanceOf(await owner.getAddress())).to.equal(0);
-  //   expect(await contract.balanceOf(await legendaryMinter.getAddress())).to.equal(1);
-  //   expect(await contract.balanceOf(await epicMinter.getAddress())).to.equal(0);
-  //   expect(await contract.balanceOf(await rareMinter.getAddress())).to.equal(0);
-  // });
+  it("Should return error from verify voucher cause expired after extend", async function () {
+    // increase time
+    await ethers.provider.send("evm_increaseTime", [
+      Math.floor(Date.now() / 1000) + 86401 * 60,
+    ]);
+    await ethers.provider.send("evm_mine");
 
-  // it("Epic Mint", async function () {
-  //   const whitelistEpicAddresses = [
-  //     "0xcd3B766CCDd6AE721141F452C550Ca635964ce71",
-  //     "0x2546BcD3c84621e976D8185a91A922aE77ECEc30",
-  //     "0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
-  //     "0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
-  //     "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
-  //     await epicMinter.getAddress(),
-  //   ];
-  //   // setup merkel root
-  //   const leafNodes = whitelistEpicAddresses.map((addr) => keccak256(addr));
-  //   const merkleTree = new MerkleTree(leafNodes, keccak256, { sortPairs: true, });
-  //   const rootHash = merkleTree.getHexRoot();
-  //   // Update the root hash
-  //   await (await contract.setMerkleRoot(1, rootHash)).wait();
+    await expect(
+      contract.connect(other).verifyVoucher(voucherHash)
+    ).to.be.rejectedWith("VoucherExpired");
+  });
 
-  //   // check merklerooot
-  //   await expect(
-  //     contract
-  //       .connect(legendaryMinter)
-  //       .mint(1,
-  //         merkleTree.getHexProof(keccak256(await legendaryMinter.getAddress())),
-  //         "",
-  //         { value: getPrice("0.03", 1) }
-  //       )
-  //   ).to.be.revertedWith("InvalidProof");
-  //   await expect(
-  //     contract
-  //       .connect(rareMinter)
-  //       .mint(1,
-  //         merkleTree.getHexProof(keccak256(await rareMinter.getAddress())),
-  //         "",
-  //         { value: getPrice("0.03", 1) }
-  //       )
-  //   ).to.be.revertedWith("InvalidProof");
+  it("Reedem Voucher", async function () {
+    await contract.connect(owner).redeemVoucher(voucherHash);
+  });
 
-  //   // check cost
-  //   await expect(
-  //     contract
-  //       .connect(epicMinter)
-  //       .mint(1,
-  //         merkleTree.getHexProof(keccak256(await epicMinter.getAddress())),
-  //         "",
-  //         { value: getPrice("0.02", 1) }
-  //       )
-  //   ).to.be.revertedWith("InsufficientFunds");
+  it("Should error Reedem Voucher cause voucher already redeemed", async function () {
+    await expect(
+      contract.connect(owner).redeemVoucher(voucherHash)
+    ).to.be.rejectedWith("VoucherAlreadyRedeemed");
+  });
 
-  //   // minting success
-  //   await contract
-  //     .connect(epicMinter)
-  //     .mint(1,
-  //       merkleTree.getHexProof(keccak256(await epicMinter.getAddress())),
-  //       "", // this is metadata input CID from IPFS
-  //       { value: getPrice("0.03", 1) }
-  //     );
+  it("Should error Reedem Voucher cause voucher not exist", async function () {
+    await expect(
+      contract.connect(owner).redeemVoucher(voucherHashError)
+    ).to.be.rejectedWith("VoucherNotExist");
+  });
 
-  //   // try to mint again
-  //   await expect(
-  //     contract
-  //       .connect(epicMinter)
-  //       .mint(1,
-  //         merkleTree.getHexProof(keccak256(await epicMinter.getAddress())),
-  //         "",
-  //         { value: getPrice("0.03", 1) }
-  //       )
-  //   ).to.be.revertedWith("ExceedeedTokenClaiming");
+  it("Should return error from verify voucher cause already redeemed", async function () {
+    await expect(
+      contract.connect(other).verifyVoucher(voucherHash)
+    ).to.be.rejectedWith("VoucherAlreadyRedeemed");
+  });
 
-  //   // check supply
-  //   expect((await contract.avatar(1)).minted).to.equal(2);
-  //   expect(await contract.totalSupply()).to.be.equal(2);
-
-  //   // check balance
-  //   expect(await contract.balanceOf(await owner.getAddress())).to.equal(0);
-  //   expect(await contract.balanceOf(await legendaryMinter.getAddress())).to.equal(1);
-  //   expect(await contract.balanceOf(await epicMinter.getAddress())).to.equal(1);
-  //   expect(await contract.balanceOf(await rareMinter.getAddress())).to.equal(0);
-  // });
-
-  // it("Rare Mint", async function () {
-  //   const whitelistRareAddresses = [
-  //     "0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
-  //     "0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
-  //     "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
-  //     await rareMinter.getAddress(),
-  //   ];
-  //   // setup merkel root
-  //   const leafNodes = whitelistRareAddresses.map((addr) => keccak256(addr));
-  //   const merkleTree = new MerkleTree(leafNodes, keccak256, { sortPairs: true, });
-  //   const rootHash = merkleTree.getHexRoot();
-  //   // Update the root hash
-  //   await (await contract.setMerkleRoot(2, rootHash)).wait();
-
-  //   // check merklerooot
-  //   await expect(
-  //     contract
-  //       .connect(legendaryMinter)
-  //       .mint(2,
-  //         merkleTree.getHexProof(keccak256(await legendaryMinter.getAddress())),
-  //         "",
-  //         { value: getPrice("0.01", 1) }
-  //       )
-  //   ).to.be.revertedWith("InvalidProof");
-  //   await expect(
-  //     contract
-  //       .connect(epicMinter)
-  //       .mint(2,
-  //         merkleTree.getHexProof(keccak256(await epicMinter.getAddress())),
-  //         "",
-  //         { value: getPrice("0.01", 1) }
-  //       )
-  //   ).to.be.revertedWith("InvalidProof");
-
-  //   // check cost
-  //   await expect(
-  //     contract
-  //       .connect(rareMinter)
-  //       .mint(2,
-  //         merkleTree.getHexProof(keccak256(await rareMinter.getAddress())),
-  //         "",
-  //         { value: getPrice("0.009", 1) }
-  //       )
-  //   ).to.be.revertedWith("InsufficientFunds");
-
-  //   // minting success
-  //   await contract
-  //     .connect(rareMinter)
-  //     .mint(2,
-  //       merkleTree.getHexProof(keccak256(await rareMinter.getAddress())),
-  //       "", // this is metadata input CID from IPFS
-  //       { value: getPrice("0.01", 1) }
-  //     );
-
-  //   // try to mint again
-  //   await expect(
-  //     contract
-  //       .connect(rareMinter)
-  //       .mint(2,
-  //         merkleTree.getHexProof(keccak256(await rareMinter.getAddress())),
-  //         "",
-  //         { value: getPrice("0.01", 1) }
-  //       )
-  //   ).to.be.revertedWith("ExceedeedTokenClaiming");
-
-  //   // check supply
-  //   expect((await contract.avatar(2)).minted).to.equal(2);
-  //   expect(await contract.totalSupply()).to.be.equal(3);
-
-  //   // check balance
-  //   expect(await contract.balanceOf(await owner.getAddress())).to.equal(0);
-  //   expect(await contract.balanceOf(await legendaryMinter.getAddress())).to.equal(1);
-  //   expect(await contract.balanceOf(await epicMinter.getAddress())).to.equal(1);
-  //   expect(await contract.balanceOf(await rareMinter.getAddress())).to.equal(1);
-  // });
-
-  // it("Token URI generation", async function () {
-  //   // assume the metadata is located in CID bellow
-  //   // const uriPrefix = "ipfs://QmPheZWCLHygMQLQiRVmAWD4YZBcgLndC1V3ZGVW8AECkW/";
-  //   // const uriSuffix = ".json";
-  //   const tokenAlreadyMinted = await contract.totalSupply();
-
-  //   // Testing first and last minted tokens
-  //   for (let i = 1; i <= tokenAlreadyMinted; i++) {
-  //     expect(await contract.tokenURI(i)).to.equal(
-  //       //`${uriPrefix}${i}${uriSuffix}`
-  //       ""
-  //     );
-  //   }
-
-  //   // keep tracking that there is no token ID = 0
-  //   await expect(contract.tokenURI(0)).to.be.revertedWith("ERC721: invalid token ID");
-  // });
-
-  // it("Withdraw", async function () {
-  //   // success
-  //   await contract.connect(owner).withdraw();
-
-  //   // error = balance is 0
-  //   await expect(contract.connect(owner).withdraw()).to.be.revertedWith(
-  //     "InsufficientFunds"
-  //   );
-  // });
+  it("Should return error from extend voucher cause already redeemed", async function () {
+    await expect(
+      contract
+        .connect(owner)
+        .extendLevy(
+          voucherHash,
+          BigInt(Math.floor(Date.now() / 1000) + 86401 * 60)
+        )
+    ).to.be.rejectedWith("VoucherAlreadyRedeemed");
+  });
 });
