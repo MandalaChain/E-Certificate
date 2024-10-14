@@ -83,6 +83,13 @@ const config: HardhatUserConfig = {
     },
   },
   networks: {
+    hardhat: {
+      chainId: 1337,
+    },
+    localhost: {
+      url: "http://127.0.0.1:8545",
+      chainId: 1337,
+    },
     truffle: {
       url: 'http://localhost:24012/rpc',
       timeout: 60000,
