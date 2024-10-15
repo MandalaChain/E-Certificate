@@ -112,11 +112,29 @@ const config: HardhatUserConfig = {
       mainnet: process.env.BLOCK_EXPLORER_API_KEY!,
       // Polygon
       polygon: process.env.BLOCK_EXPLORER_API_KEY!,
-      polygonMumbai: process.env.BLOCK_EXPLORER_API_KEY!,
+      amoy: process.env.BLOCK_EXPLORER_API_KEY!,
       // Arbitrum
       arbitrumGoerli: process.env.BLOCK_EXPLORER_API_KEY!,
       arbitrumOne: process.env.BLOCK_EXPLORER_API_KEY!,
     },
+    customChains: [
+      {
+        network: "amoy",
+        chainId: 80002,
+        urls: {
+          apiURL: "https://api-amoy.polygonscan.com/api",
+          browserURL: "https://amoy.polygonscan.com/"
+        }
+      },
+      {
+        network: "niskala",
+        chainId: 6025,
+        urls: {
+          apiURL: "https://niskala.mandalachain.io/api",
+          browserURL: "https://niskala.mandalachain.io/"
+        }
+      },
+    ],
   },
 };
 

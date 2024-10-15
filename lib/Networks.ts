@@ -50,12 +50,12 @@ export const ethereumMainnet: NetworkConfigInterface = {
  * Polygon
  */
 export const polygonTestnet: NetworkConfigInterface = {
-    chainId: 80001,
+    chainId: 80002,
     symbol: "MATIC (test)",
     blockExplorer: {
-        name: "Polygonscan (Mumbai)",
-        generatorContractUrl: (contractAddress: string) => `https://mumbai.polygonscan.com/address/${contractAddress}`,
-        generateTransactionUrl: (transactionAddress: string) => `https://mumbai.polygonscan.com/tx/${transactionAddress}`,
+        name: "Polygonscan (Amoy)",
+        generatorContractUrl: (contractAddress: string) => `https://amoy.polygonscan.com/address/${contractAddress}`,
+        generateTransactionUrl: (transactionAddress: string) => `https://amoy.polygonscan.com/tx/${transactionAddress}`,
     },
 }
 
@@ -89,5 +89,18 @@ export const arbitrumOne: NetworkConfigInterface = {
         name: "Arbitrum One",
         generatorContractUrl: (contractAddress: string) => `https://explorer.arbitrum.io/address/${contractAddress}`,
         generateTransactionUrl: (transactionAddress: string) => `https://explorer.arbitrum.io/tx/${transactionAddress}`,
+    },
+}
+
+/*
+ * Mandala
+ */
+export const niskala: NetworkConfigInterface = {
+    chainId: 6025,
+    symbol: "KPGT",
+    blockExplorer: {
+        name: "Mandala Niskala",
+        generatorContractUrl: (contractAddress: string) => `https://niskala.mandalachain.io/address/${contractAddress}`,
+        generateTransactionUrl: (transactionAddress: string) => `https://niskala.mandalachain.io/tx/${transactionAddress}`,
     },
 }

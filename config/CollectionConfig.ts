@@ -3,12 +3,12 @@ import * as Networks from "../lib/Networks";
 //import * as Marketpalce from "../lib/Marketplaces";
 
 const CollectionConfig: CollectionConfigInterface = {
-    testnet: Networks.arbitrumGoerli,
+    testnet: Networks.polygonTestnet,
     mainnet: Networks.arbitrumOne,
     contractName: "LevyContract",
     tokenName: "Levy Voucher Qr",
     tokenSymbol: "LVQ",
-    contractAddress: "0x52c4B82d4c47CF0eFd304b747c72D0C451db1a7f",
+    contractAddress: "0x17A101F41aA7056818D686D779A11D8F7F5354b3",
     //marketplaceIdentifier: "market-place-identifier",
     //marketplaceConfig: Marketpalce.openSea
 };
