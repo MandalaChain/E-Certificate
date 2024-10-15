@@ -38,22 +38,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.LevyContract__factory>;
     getContractFactory(
-      name: "ERC4671",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.ERC4671__factory>;
-    getContractFactory(
-      name: "IERC4671",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IERC4671__factory>;
-    getContractFactory(
-      name: "IERC4671Enumerable",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IERC4671Enumerable__factory>;
-    getContractFactory(
-      name: "IERC4671Metadata",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IERC4671Metadata__factory>;
-    getContractFactory(
       name: "ERC721A__IERC721Receiver",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ERC721A__IERC721Receiver__factory>;
@@ -97,26 +81,6 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.LevyContract>;
     getContractAt(
-      name: "ERC4671",
-      address: string | ethers.Addressable,
-      signer?: ethers.Signer
-    ): Promise<Contracts.ERC4671>;
-    getContractAt(
-      name: "IERC4671",
-      address: string | ethers.Addressable,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IERC4671>;
-    getContractAt(
-      name: "IERC4671Enumerable",
-      address: string | ethers.Addressable,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IERC4671Enumerable>;
-    getContractAt(
-      name: "IERC4671Metadata",
-      address: string | ethers.Addressable,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IERC4671Metadata>;
-    getContractAt(
       name: "ERC721A__IERC721Receiver",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
@@ -156,22 +120,6 @@ declare module "hardhat/types/runtime" {
       name: "LevyContract",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.LevyContract>;
-    deployContract(
-      name: "ERC4671",
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.ERC4671>;
-    deployContract(
-      name: "IERC4671",
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.IERC4671>;
-    deployContract(
-      name: "IERC4671Enumerable",
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.IERC4671Enumerable>;
-    deployContract(
-      name: "IERC4671Metadata",
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.IERC4671Metadata>;
     deployContract(
       name: "ERC721A__IERC721Receiver",
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -215,26 +163,6 @@ declare module "hardhat/types/runtime" {
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.LevyContract>;
-    deployContract(
-      name: "ERC4671",
-      args: any[],
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.ERC4671>;
-    deployContract(
-      name: "IERC4671",
-      args: any[],
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.IERC4671>;
-    deployContract(
-      name: "IERC4671Enumerable",
-      args: any[],
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.IERC4671Enumerable>;
-    deployContract(
-      name: "IERC4671Metadata",
-      args: any[],
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.IERC4671Metadata>;
     deployContract(
       name: "ERC721A__IERC721Receiver",
       args: any[],

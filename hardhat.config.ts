@@ -2,7 +2,7 @@ import fs from 'fs';
 import * as dotenv from "dotenv";
 import { HardhatUserConfig, task } from "hardhat/config";
 import "@nomiclabs/hardhat-etherscan";
-import "@nomicfoundation/hardhat-ethers";
+import "@nomiclabs/hardhat-ethers";
 import "@typechain/hardhat";
 import "hardhat-gas-reporter";
 import "solidity-coverage";
@@ -95,6 +95,11 @@ const config: HardhatUserConfig = {
       timeout: 60000,
       gasMultiplier: DEFAULT_GAS_MULTIPLIER,
     },
+    niskala: {
+      url: 'https://mlg1.mandalachain.io',
+      chainId: 6025,
+      accounts: process.env.NETWORK_TESTNET_PRIVATE_KEY ? [process.env.NETWORK_TESTNET_PRIVATE_KEY] : [],
+    },
   },
   gasReporter: {
     // enabled: process.env.REPORT_GAS ? true : false,
@@ -116,6 +121,8 @@ const config: HardhatUserConfig = {
       // Arbitrum
       arbitrumGoerli: process.env.BLOCK_EXPLORER_API_KEY!,
       arbitrumOne: process.env.BLOCK_EXPLORER_API_KEY!,
+      // Niskala
+      niskala: process.env.BLOCK_EXPLORER_API_KEY!,
     },
     customChains: [
       {
@@ -131,7 +138,7 @@ const config: HardhatUserConfig = {
         chainId: 6025,
         urls: {
           apiURL: "https://niskala.mandalachain.io/api",
-          browserURL: "https://niskala.mandalachain.io/"
+          browserURL: "https://niskala.mandalachain.io"
         }
       },
     ],
