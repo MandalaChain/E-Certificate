@@ -65,6 +65,7 @@ export interface LevyContractInterface extends Interface {
       | "balanceOf"
       | "extendLevy"
       | "getApproved"
+      | "getDateMintingVoucher"
       | "getVoucherData"
       | "isApprovedForAll"
       | "mintVoucher"
@@ -113,6 +114,10 @@ export interface LevyContractInterface extends Interface {
   encodeFunctionData(
     functionFragment: "getApproved",
     values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getDateMintingVoucher",
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getVoucherData",
@@ -183,6 +188,10 @@ export interface LevyContractInterface extends Interface {
   decodeFunctionResult(functionFragment: "extendLevy", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getApproved",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getDateMintingVoucher",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -460,6 +469,12 @@ export interface LevyContract extends BaseContract {
 
   getApproved: TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
 
+  getDateMintingVoucher: TypedContractMethod<
+    [voucherHash: BytesLike],
+    [bigint],
+    "view"
+  >;
+
   getVoucherData: TypedContractMethod<
     [voucherHash: BytesLike],
     [LevyContract.VoucherStructOutput],
@@ -569,6 +584,9 @@ export interface LevyContract extends BaseContract {
   getFunction(
     nameOrSignature: "getApproved"
   ): TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
+  getFunction(
+    nameOrSignature: "getDateMintingVoucher"
+  ): TypedContractMethod<[voucherHash: BytesLike], [bigint], "view">;
   getFunction(
     nameOrSignature: "getVoucherData"
   ): TypedContractMethod<

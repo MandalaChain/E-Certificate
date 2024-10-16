@@ -61,11 +61,21 @@ contract LevyContract is ERC721A, Ownable {
         LevyStatus levyStatus;
     }
 
+    /**
+     * @dev Struct representing the details of a levy voucher.
+     * @param voucher            The voucher details.
+     * @param createdDated       The date the voucher was created.
+     */
+    struct VoucherCreated {
+        Voucher voucher;
+        uint256 createdDated;
+    }
+
     /// @notice Mapping from voucher hash to token ID.
     mapping(bytes32 => uint256) private _voucherHashes;
 
     /// @notice Mapping from token ID to Voucher details.
-    mapping(uint256 => Voucher) private _levyVoucher;
+    mapping(uint256 => VoucherCreated) private _levyVoucher;
 
     /**
      * @dev Emitted when a new voucher is issued.
@@ -138,7 +148,10 @@ contract LevyContract is ERC721A, Ownable {
         uint256 tokenId = _nextTokenId();
         _mint(owner(), 1);
         _voucherHashes[dataHash] = tokenId;
-        _levyVoucher[tokenId] = voucher;
+        _levyVoucher[tokenId] = VoucherCreated({
+            voucher: voucher,
+            createdDated: block.timestamp
+        });
 
         emit VoucherIssued(tokenId, dataHash, voucher.levyExpiredDate);
     }
@@ -149,16 +162,16 @@ contract LevyContract is ERC721A, Ownable {
      * @param voucherHash The unique hash representing the voucher data.
      */
     function verifyVoucher(bytes32 voucherHash) external {
-        (Voucher memory _voucher, uint256 _tokenId) = _getTokenVoucher(
+        (VoucherCreated memory _voucher, uint256 _tokenId) = _getTokenVoucher(
             voucherHash
         );
-        if (_voucher.levyStatus == LevyStatus.Redeemed) {
+        if (_voucher.voucher.levyStatus == LevyStatus.Redeemed) {
             revert VoucherAlreadyRedeemed();
         }
-        if (_voucher.levyStatus == LevyStatus.Expired) {
+        if (_voucher.voucher.levyStatus == LevyStatus.Expired) {
             revert VoucherExpired();
         }
-        if (_isExpired(_voucher, _tokenId)) {
+        if (_isExpired(_voucher.voucher, _tokenId)) {
             revert VoucherExpired();
         }
         emit VoucherValidated(voucherHash, true);
@@ -175,18 +188,18 @@ contract LevyContract is ERC721A, Ownable {
      * - The voucher must not have been redeemed already.
      */
     function redeemVoucher(bytes32 voucherHash) external onlyOwner {
-        (Voucher memory _voucher, uint256 _tokenId) = _getTokenVoucher(
+        (VoucherCreated memory _voucher, uint256 _tokenId) = _getTokenVoucher(
             voucherHash
         );
-        if (!_isExpired(_voucher, _tokenId)) {
+        if (!_isExpired(_voucher.voucher, _tokenId)) {
             revert VoucherStillActive();
         }
-        if (_voucher.levyStatus == LevyStatus.Redeemed) {
+        if (_voucher.voucher.levyStatus == LevyStatus.Redeemed) {
             revert VoucherAlreadyRedeemed();
         }
 
         // Update status to Redeemed
-        _levyVoucher[_tokenId].levyStatus = LevyStatus.Redeemed;
+        _levyVoucher[_tokenId].voucher.levyStatus = LevyStatus.Redeemed;
 
         emit Redeemed(_tokenId, msg.sender);
     }
@@ -206,8 +219,25 @@ contract LevyContract is ERC721A, Ownable {
         uint256 _tokenId = _voucherHashes[voucherHash];
         if (_tokenId == 0) revert VoucherNotExist();
         if (!_exists(_tokenId)) revert InvalidTokenId();
-        return _levyVoucher[_tokenId];
+        return _levyVoucher[_tokenId].voucher;
     }
+
+    /**
+     * @notice Retrieves time created of the voucher data associated with a specific hash.
+     * @param voucherHash The unique hash representing the voucher data.
+     * @return Time created of the voucher.
+     *
+     * Requirements:
+     * - The voucher must exist.
+     * - The token ID associated with the hash must be valid.
+     */
+    function getDateMintingVoucher(
+        bytes32 voucherHash) external view returns (uint256) {
+            uint256 _tokenId = _voucherHashes[voucherHash];
+            if (_tokenId == 0) revert VoucherNotExist();
+            if (!_exists(_tokenId)) revert InvalidTokenId();
+            return _levyVoucher[_tokenId].createdDated;
+        }
 
     /**
      * @notice Extends the expiration date of an existing voucher.
@@ -224,10 +254,10 @@ contract LevyContract is ERC721A, Ownable {
         bytes32 voucherHash,
         uint256 extendDate
     ) external onlyOwner {
-        (Voucher memory _voucher, uint256 _tokenId) = _getTokenVoucher(
+        (VoucherCreated memory _voucher, uint256 _tokenId) = _getTokenVoucher(
             voucherHash
         );
-        if (_voucher.levyStatus == LevyStatus.Redeemed) {
+        if (_voucher.voucher.levyStatus == LevyStatus.Redeemed) {
             revert VoucherAlreadyRedeemed();
         }
         if (extendDate == 0) {
@@ -236,10 +266,10 @@ contract LevyContract is ERC721A, Ownable {
         if (extendDate < block.timestamp) {
             revert InvalidDate();
         }
-        if (extendDate < _voucher.levyExpiredDate) {
+        if (extendDate < _voucher.voucher.levyExpiredDate) {
             revert InvalidDate();
         }
-        _levyVoucher[_tokenId].levyExpiredDate = extendDate;
+        _levyVoucher[_tokenId].voucher.levyExpiredDate = extendDate;
         emit VoucherExtended(voucherHash, extendDate);
     }
 
@@ -280,7 +310,7 @@ contract LevyContract is ERC721A, Ownable {
         uint256 _tokenId
     ) internal returns (bool) {
         if (block.timestamp > _voucher.levyExpiredDate) {
-            _levyVoucher[_tokenId].levyStatus = LevyStatus.Expired;
+            _levyVoucher[_tokenId].voucher.levyStatus = LevyStatus.Expired;
             return true;
         }
         return false;
@@ -297,7 +327,7 @@ contract LevyContract is ERC721A, Ownable {
      */
     function _getTokenVoucher(
         bytes32 _voucherHash
-    ) internal view returns (Voucher memory, uint256) {
+    ) internal view returns (VoucherCreated memory, uint256) {
         uint256 _tokenId = _voucherHashes[_voucherHash];
         if (_tokenId == 0) {
             revert VoucherNotExist();
