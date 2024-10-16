@@ -8,7 +8,7 @@ const CollectionConfig: CollectionConfigInterface = {
     contractName: "LevyContract",
     tokenName: "Levy Voucher Qr",
     tokenSymbol: "LVQ",
-    contractAddress: "0xD0614f17B35be980b7890Dbf2CC3F2d3194188c2",
+    contractAddress: "0x0f01F5B3585202BaEFf2294bd0E1576332Fa6531",
     //marketplaceIdentifier: "market-place-identifier",
     //marketplaceConfig: Marketpalce.openSea
 };

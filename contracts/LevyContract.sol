@@ -79,14 +79,16 @@ contract LevyContract is ERC721A, Ownable {
 
     /**
      * @dev Emitted when a new voucher is issued.
-     * @param tokenId      The unique identifier for the issued voucher token.
-     * @param voucherHash  The unique hash representing the voucher data.
-     * @param expiryDate   The expiration date of the voucher.
+     * @param tokenId       The unique identifier for the issued voucher token.
+     * @param voucherHash   The unique hash representing the voucher data.
+     * @param expiryDate    The expiration date of the voucher.
+     * @param createdDated  The date the voucher was created.
      */
     event VoucherIssued(
         uint256 indexed tokenId,
         bytes32 voucherHash,
-        uint256 expiryDate
+        uint256 expiryDate,
+        uint256 createdDated
     );
 
     /**
@@ -147,13 +149,14 @@ contract LevyContract is ERC721A, Ownable {
 
         uint256 tokenId = _nextTokenId();
         _mint(owner(), 1);
+        uint256 _timeCreated = block.timestamp;
         _voucherHashes[dataHash] = tokenId;
         _levyVoucher[tokenId] = VoucherCreated({
             voucher: voucher,
-            createdDated: block.timestamp
+            createdDated: _timeCreated
         });
 
-        emit VoucherIssued(tokenId, dataHash, voucher.levyExpiredDate);
+        emit VoucherIssued(tokenId, dataHash, voucher.levyExpiredDate, _timeCreated);
     }
 
     /**

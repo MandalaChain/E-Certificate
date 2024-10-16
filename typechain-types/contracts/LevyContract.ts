@@ -379,17 +379,20 @@ export namespace VoucherIssuedEvent {
   export type InputTuple = [
     tokenId: BigNumberish,
     voucherHash: BytesLike,
-    expiryDate: BigNumberish
+    expiryDate: BigNumberish,
+    createdDated: BigNumberish
   ];
   export type OutputTuple = [
     tokenId: bigint,
     voucherHash: string,
-    expiryDate: bigint
+    expiryDate: bigint,
+    createdDated: bigint
   ];
   export interface OutputObject {
     tokenId: bigint;
     voucherHash: string;
     expiryDate: bigint;
+    createdDated: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -817,7 +820,7 @@ export interface LevyContract extends BaseContract {
       VoucherExtendedEvent.OutputObject
     >;
 
-    "VoucherIssued(uint256,bytes32,uint256)": TypedContractEvent<
+    "VoucherIssued(uint256,bytes32,uint256,uint256)": TypedContractEvent<
       VoucherIssuedEvent.InputTuple,
       VoucherIssuedEvent.OutputTuple,
       VoucherIssuedEvent.OutputObject
