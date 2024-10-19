@@ -24,37 +24,26 @@ import type {
 } from "../common";
 
 export declare namespace LevyContract {
-  export type UserStruct = {
-    passport: string;
-    name: string;
-    email: string;
-    arrivalDate: BigNumberish;
-  };
-
-  export type UserStructOutput = [
-    passport: string,
-    name: string,
-    email: string,
-    arrivalDate: bigint
-  ] & { passport: string; name: string; email: string; arrivalDate: bigint };
-
   export type VoucherStruct = {
-    user: LevyContract.UserStruct;
-    voucherCode: string;
+    user: string;
+    createdDated: BigNumberish;
     levyExpiredDate: BigNumberish;
     levyStatus: BigNumberish;
+    onChainUrl: string;
   };
 
   export type VoucherStructOutput = [
-    user: LevyContract.UserStructOutput,
-    voucherCode: string,
+    user: string,
+    createdDated: bigint,
     levyExpiredDate: bigint,
-    levyStatus: bigint
+    levyStatus: bigint,
+    onChainUrl: string
   ] & {
-    user: LevyContract.UserStructOutput;
-    voucherCode: string;
+    user: string;
+    createdDated: bigint;
     levyExpiredDate: bigint;
     levyStatus: bigint;
+    onChainUrl: string;
   };
 }
 
@@ -77,6 +66,7 @@ export interface LevyContractInterface extends Interface {
       | "safeTransferFrom(address,address,uint256)"
       | "safeTransferFrom(address,address,uint256,bytes)"
       | "setApprovalForAll"
+      | "setOnChainURL"
       | "supportsInterface"
       | "symbol"
       | "tokenURI"
@@ -93,6 +83,7 @@ export interface LevyContractInterface extends Interface {
       | "ConsecutiveTransfer"
       | "OwnershipTransferred"
       | "Redeemed"
+      | "SetVoucherURL"
       | "Transfer"
       | "VoucherExtended"
       | "VoucherIssued"
@@ -129,7 +120,7 @@ export interface LevyContractInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "mintVoucher",
-    values: [LevyContract.VoucherStruct]
+    values: [BytesLike, string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
@@ -156,6 +147,10 @@ export interface LevyContractInterface extends Interface {
   encodeFunctionData(
     functionFragment: "setApprovalForAll",
     values: [AddressLike, boolean]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setOnChainURL",
+    values: [BytesLike, string]
   ): string;
   encodeFunctionData(
     functionFragment: "supportsInterface",
@@ -227,6 +222,10 @@ export interface LevyContractInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "setApprovalForAll",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setOnChainURL",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -337,6 +336,19 @@ export namespace RedeemedEvent {
   export interface OutputObject {
     tokenId: bigint;
     redeemedBy: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace SetVoucherURLEvent {
+  export type InputTuple = [tokenId: BigNumberish, onChainUrl: string];
+  export type OutputTuple = [tokenId: bigint, onChainUrl: string];
+  export interface OutputObject {
+    tokenId: bigint;
+    onChainUrl: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -491,7 +503,7 @@ export interface LevyContract extends BaseContract {
   >;
 
   mintVoucher: TypedContractMethod<
-    [voucher: LevyContract.VoucherStruct],
+    [voucherHash: BytesLike, userData: string, expiryDate: BigNumberish],
     [void],
     "nonpayable"
   >;
@@ -531,6 +543,12 @@ export interface LevyContract extends BaseContract {
     [operator: AddressLike, approved: boolean],
     [void],
     "view"
+  >;
+
+  setOnChainURL: TypedContractMethod<
+    [voucherHash: BytesLike, url: string],
+    [void],
+    "nonpayable"
   >;
 
   supportsInterface: TypedContractMethod<
@@ -607,7 +625,7 @@ export interface LevyContract extends BaseContract {
   getFunction(
     nameOrSignature: "mintVoucher"
   ): TypedContractMethod<
-    [voucher: LevyContract.VoucherStruct],
+    [voucherHash: BytesLike, userData: string, expiryDate: BigNumberish],
     [void],
     "nonpayable"
   >;
@@ -651,6 +669,13 @@ export interface LevyContract extends BaseContract {
     [operator: AddressLike, approved: boolean],
     [void],
     "view"
+  >;
+  getFunction(
+    nameOrSignature: "setOnChainURL"
+  ): TypedContractMethod<
+    [voucherHash: BytesLike, url: string],
+    [void],
+    "nonpayable"
   >;
   getFunction(
     nameOrSignature: "supportsInterface"
@@ -712,6 +737,13 @@ export interface LevyContract extends BaseContract {
     RedeemedEvent.InputTuple,
     RedeemedEvent.OutputTuple,
     RedeemedEvent.OutputObject
+  >;
+  getEvent(
+    key: "SetVoucherURL"
+  ): TypedContractEvent<
+    SetVoucherURLEvent.InputTuple,
+    SetVoucherURLEvent.OutputTuple,
+    SetVoucherURLEvent.OutputObject
   >;
   getEvent(
     key: "Transfer"
@@ -796,6 +828,17 @@ export interface LevyContract extends BaseContract {
       RedeemedEvent.InputTuple,
       RedeemedEvent.OutputTuple,
       RedeemedEvent.OutputObject
+    >;
+
+    "SetVoucherURL(uint256,string)": TypedContractEvent<
+      SetVoucherURLEvent.InputTuple,
+      SetVoucherURLEvent.OutputTuple,
+      SetVoucherURLEvent.OutputObject
+    >;
+    SetVoucherURL: TypedContractEvent<
+      SetVoucherURLEvent.InputTuple,
+      SetVoucherURLEvent.OutputTuple,
+      SetVoucherURLEvent.OutputObject
     >;
 
     "Transfer(address,address,uint256)": TypedContractEvent<
