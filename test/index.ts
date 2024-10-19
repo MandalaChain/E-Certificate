@@ -90,7 +90,7 @@ describe(CollectionConfig.contractName, async function () {
 
   it("Owner only functions", async function () {
     await expect(
-      contract.connect(other).mintVoucher(voucher)
+      contract.connect(other).mintVoucher(voucherHash, "", 123)
     ).to.be.rejectedWith(`OwnableUnauthorizedAccount("${other.address}")`);
 
     await expect(
@@ -103,15 +103,19 @@ describe(CollectionConfig.contractName, async function () {
   });
 
   it("Mint Voucher Levy", async function () {
-    await contract.connect(owner).mintVoucher(voucher);
+    await contract.connect(owner).mintVoucher(voucherHash, "user1", voucher.levyExpiredDate);
 
     expect((await contract.totalSupply()).toString()).to.equal("1");
   });
 
   it("Should Error if voucher already exists", async function () {
     await expect(
-      contract.connect(owner).mintVoucher(voucher)
+      contract.connect(owner).mintVoucher(voucherHash, "user1", voucher.levyExpiredDate)
     ).to.be.rejectedWith("VoucherAlreadyExists");
+  });
+
+  it("Set on chain url after minting voucher", async function () {
+    await contract.connect(owner).setOnChainURL(voucherHash, "https://url.com");
   });
 
   it("Should return false from verify voucher cause not mint before", async function () {
@@ -126,17 +130,10 @@ describe(CollectionConfig.contractName, async function () {
 
   it("Check initial data from voucher", async function () {
     const voucherData = await contract.getVoucherData(voucherHash);
-    expect(voucherData.user.passport).to.equal(voucher.user.passport);
-    expect(voucherData.user.name).to.equal(voucher.user.name);
-    expect(voucherData.user.email).to.equal(voucher.user.email);
-    expect(voucherData.user.arrivalDate.toString()).to.equal(
-      voucher.user.arrivalDate.toString()
-    );
-    expect(voucherData.voucherCode).to.equal(voucher.voucherCode);
-    expect(voucherData.levyExpiredDate.toString()).to.equal(
-      voucher.levyExpiredDate.toString()
-    );
-    expect(voucherData.levyStatus.toString()).to.equal(voucher.levyStatus.toString());
+    expect(voucherData.user).to.equal("user1");
+    expect(voucherData.levyExpiredDate.toString()).to.equal(voucher.levyExpiredDate.toString());
+    expect(voucherData.levyStatus).to.equal(voucher.levyStatus);
+    expect(voucherData.onChainUrl).to.equal("https://url.com");
   });
 
   it("Should return error from verify voucher cause expired", async function () {
