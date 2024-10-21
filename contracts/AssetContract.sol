@@ -35,6 +35,7 @@ contract AssetContract is ERC721A, Ownable {
 
     /**
      * @dev Struct representing the details of a asset Data.
+     * @param docType           The document type of the Data.
      * @param data              The data associated with the Data.
      * @param createdDated      The date the Data was created.
      * @param assetExpiredDate   The expiration date of the Data.
@@ -42,6 +43,7 @@ contract AssetContract is ERC721A, Ownable {
      * @param onChainUrl         The on-chain URL of the Data.
      */
     struct Data {
+        bytes32 docType;
         string data;
         uint256 createdDated;
         uint256 assetExpiredDate;
