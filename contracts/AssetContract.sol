@@ -13,6 +13,7 @@ error TransferNotAllowed();
 error TokenNotExists();
 error DocumentNotApproved();
 error DocumentAlreadyApproved();
+error Unauthorized();
 
 /**
  * @title AssetContract
@@ -45,6 +46,9 @@ contract AssetContract is ERC721A, Ownable {
         AssetStatus assetStatus;
         string onChainUrl;
     }
+
+    /// @notice Mapping from address to approved owner.
+    mapping(address => bool) private _approveOwner;
 
     /// @notice Mapping from token ID to approved document types.
     mapping(bytes32 => bool) private _approceDocTypes;
@@ -88,10 +92,7 @@ contract AssetContract is ERC721A, Ownable {
      * @param dataHash  The unique hash representing the Data data.
      * @param extendDate   The new expiration date of the Data.
      */
-    event DataExtended(
-        bytes32 indexed dataHash,
-        uint256 indexed extendDate
-    );
+    event DataExtended(bytes32 indexed dataHash, uint256 indexed extendDate);
 
     event DocumentApproved(bytes32 indexed docTypeHash);
 
@@ -103,6 +104,29 @@ contract AssetContract is ERC721A, Ownable {
         string memory _name,
         string memory _symbol
     ) ERC721A(_name, _symbol) Ownable(msg.sender) {}
+
+    /**
+     ** =============================================================================
+     **                                 MODIFIERS
+     ** =============================================================================
+     */
+    function _checkEligible(address _client) private view {
+        if (!_approveOwner[_client]) {
+            revert Unauthorized();
+        }
+    }
+
+    function _checkDocTypeApproves(bytes32 docType) private view {
+        if (!_approceDocTypes[docType]) {
+            revert DocumentNotApproved();
+        }
+    }
+
+    modifier _checkOwnerAndDocType(address _client, bytes32 docType) {
+        _checkEligible(_client);
+        _checkDocTypeApproves(docType);
+        _;
+    }
 
     /**
      ** =============================================================================
@@ -123,9 +147,9 @@ contract AssetContract is ERC721A, Ownable {
      */
     function mintData(
         bytes32 dataHash,
-        bytes32 docType, 
+        bytes32 docType,
         string memory assetData
-    ) external onlyOwner {
+    ) external _checkOwnerAndDocType(msg.sender, docType) {
         // Check if the data already exists
         if (_dataHashes[dataHash] != 0) {
             revert DataAlreadyExists();
@@ -157,9 +181,7 @@ contract AssetContract is ERC721A, Ownable {
      * @param dataHash The unique hash representing the data data.
      */
     function verifyData(bytes32 dataHash, bytes32 docType) external {
-        (Data memory _data, ) = _getTokenData(
-            dataHash, docType
-        );
+        (Data memory _data, ) = _getTokenData(dataHash, docType);
         if (_data.assetStatus == AssetStatus.Redeemed) {
             revert DataAlreadyRedeemed();
         }
@@ -174,7 +196,7 @@ contract AssetContract is ERC721A, Ownable {
      * @dev Can only be called by the contract owner.
      * @param dataHash The unique hash representing the data data.
      * @param url         The on-chain URL of the data.
-     * 
+     *
      * Requirements:
      * - The data must exist.
      */
@@ -182,7 +204,7 @@ contract AssetContract is ERC721A, Ownable {
         bytes32 dataHash,
         bytes32 docType,
         string memory url
-    ) external onlyOwner {
+    ) external _checkOwnerAndDocType(msg.sender, docType) {
         (, uint256 _tokenId) = _getTokenData(dataHash, docType);
         _assetData[_tokenId][docType].onChainUrl = url;
         emit SetDataURL(_tokenId, url);
@@ -215,9 +237,13 @@ contract AssetContract is ERC721A, Ownable {
      * - The data must not be expired.
      * - The data must not have been redeemed already.
      */
-    function redeemData(bytes32 dataHash, bytes32 docType) external onlyOwner {
+    function redeemData(
+        bytes32 dataHash,
+        bytes32 docType
+    ) external _checkOwnerAndDocType(msg.sender, docType) {
         (Data memory _data, uint256 _tokenId) = _getTokenData(
-            dataHash, docType
+            dataHash,
+            docType
         );
         if (_data.assetStatus == AssetStatus.Redeemed) {
             revert DataAlreadyRedeemed();
