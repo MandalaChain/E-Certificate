@@ -27,7 +27,6 @@ export declare namespace AssetContract {
   export type DataStruct = {
     data: string;
     createdDated: BigNumberish;
-    assetExpiredDate: BigNumberish;
     assetStatus: BigNumberish;
     onChainUrl: string;
   };
@@ -35,13 +34,11 @@ export declare namespace AssetContract {
   export type DataStructOutput = [
     data: string,
     createdDated: bigint,
-    assetExpiredDate: bigint,
     assetStatus: bigint,
     onChainUrl: string
   ] & {
     data: string;
     createdDated: bigint;
-    assetExpiredDate: bigint;
     assetStatus: bigint;
     onChainUrl: string;
   };
@@ -51,8 +48,8 @@ export interface AssetContractInterface extends Interface {
   getFunction(
     nameOrSignature:
       | "approve"
+      | "approveDocType"
       | "balanceOf"
-      | "extendData"
       | "getApproved"
       | "getAssetData"
       | "getDateMintingData"
@@ -66,6 +63,7 @@ export interface AssetContractInterface extends Interface {
       | "safeTransferFrom(address,address,uint256)"
       | "safeTransferFrom(address,address,uint256,bytes)"
       | "setApprovalForAll"
+      | "setApproveClient"
       | "setOnChainURL"
       | "supportsInterface"
       | "symbol"
@@ -84,6 +82,7 @@ export interface AssetContractInterface extends Interface {
       | "DataExtended"
       | "DataIssued"
       | "DataValidated"
+      | "DocumentApproved"
       | "OwnershipTransferred"
       | "Redeemed"
       | "SetDataURL"
@@ -95,12 +94,12 @@ export interface AssetContractInterface extends Interface {
     values: [AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "balanceOf",
-    values: [AddressLike]
+    functionFragment: "approveDocType",
+    values: [string]
   ): string;
   encodeFunctionData(
-    functionFragment: "extendData",
-    values: [BytesLike, BytesLike, BigNumberish]
+    functionFragment: "balanceOf",
+    values: [AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getApproved",
@@ -120,7 +119,7 @@ export interface AssetContractInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "mintData",
-    values: [BytesLike, BytesLike, string, BigNumberish]
+    values: [BytesLike, BytesLike, string]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
@@ -146,6 +145,10 @@ export interface AssetContractInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setApprovalForAll",
+    values: [AddressLike, boolean]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setApproveClient",
     values: [AddressLike, boolean]
   ): string;
   encodeFunctionData(
@@ -179,8 +182,11 @@ export interface AssetContractInterface extends Interface {
   ): string;
 
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "approveDocType",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "extendData", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getApproved",
     data: BytesLike
@@ -216,6 +222,10 @@ export interface AssetContractInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "setApprovalForAll",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setApproveClient",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -325,19 +335,16 @@ export namespace DataIssuedEvent {
   export type InputTuple = [
     tokenId: BigNumberish,
     dataHash: BytesLike,
-    expiryDate: BigNumberish,
     createdDated: BigNumberish
   ];
   export type OutputTuple = [
     tokenId: bigint,
     dataHash: string,
-    expiryDate: bigint,
     createdDated: bigint
   ];
   export interface OutputObject {
     tokenId: bigint;
     dataHash: string;
-    expiryDate: bigint;
     createdDated: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
@@ -352,6 +359,18 @@ export namespace DataValidatedEvent {
   export interface OutputObject {
     dataHash: string;
     isValid: boolean;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace DocumentApprovedEvent {
+  export type InputTuple = [docTypeHash: BytesLike];
+  export type OutputTuple = [docTypeHash: string];
+  export interface OutputObject {
+    docTypeHash: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -465,13 +484,9 @@ export interface AssetContract extends BaseContract {
     "payable"
   >;
 
-  balanceOf: TypedContractMethod<[owner: AddressLike], [bigint], "view">;
+  approveDocType: TypedContractMethod<[docType: string], [void], "nonpayable">;
 
-  extendData: TypedContractMethod<
-    [dataHash: BytesLike, docType: BytesLike, extendDate: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
+  balanceOf: TypedContractMethod<[owner: AddressLike], [bigint], "view">;
 
   getApproved: TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
 
@@ -494,12 +509,7 @@ export interface AssetContract extends BaseContract {
   >;
 
   mintData: TypedContractMethod<
-    [
-      dataHash: BytesLike,
-      docType: BytesLike,
-      assetData: string,
-      expiryDate: BigNumberish
-    ],
+    [dataHash: BytesLike, docType: BytesLike, assetData: string],
     [void],
     "nonpayable"
   >;
@@ -539,6 +549,12 @@ export interface AssetContract extends BaseContract {
     [operator: AddressLike, approved: boolean],
     [void],
     "view"
+  >;
+
+  setApproveClient: TypedContractMethod<
+    [_client: AddressLike, status: boolean],
+    [void],
+    "nonpayable"
   >;
 
   setOnChainURL: TypedContractMethod<
@@ -589,15 +605,11 @@ export interface AssetContract extends BaseContract {
     "payable"
   >;
   getFunction(
+    nameOrSignature: "approveDocType"
+  ): TypedContractMethod<[docType: string], [void], "nonpayable">;
+  getFunction(
     nameOrSignature: "balanceOf"
   ): TypedContractMethod<[owner: AddressLike], [bigint], "view">;
-  getFunction(
-    nameOrSignature: "extendData"
-  ): TypedContractMethod<
-    [dataHash: BytesLike, docType: BytesLike, extendDate: BigNumberish],
-    [void],
-    "nonpayable"
-  >;
   getFunction(
     nameOrSignature: "getApproved"
   ): TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
@@ -625,12 +637,7 @@ export interface AssetContract extends BaseContract {
   getFunction(
     nameOrSignature: "mintData"
   ): TypedContractMethod<
-    [
-      dataHash: BytesLike,
-      docType: BytesLike,
-      assetData: string,
-      expiryDate: BigNumberish
-    ],
+    [dataHash: BytesLike, docType: BytesLike, assetData: string],
     [void],
     "nonpayable"
   >;
@@ -678,6 +685,13 @@ export interface AssetContract extends BaseContract {
     [operator: AddressLike, approved: boolean],
     [void],
     "view"
+  >;
+  getFunction(
+    nameOrSignature: "setApproveClient"
+  ): TypedContractMethod<
+    [_client: AddressLike, status: boolean],
+    [void],
+    "nonpayable"
   >;
   getFunction(
     nameOrSignature: "setOnChainURL"
@@ -759,6 +773,13 @@ export interface AssetContract extends BaseContract {
     DataValidatedEvent.OutputObject
   >;
   getEvent(
+    key: "DocumentApproved"
+  ): TypedContractEvent<
+    DocumentApprovedEvent.InputTuple,
+    DocumentApprovedEvent.OutputTuple,
+    DocumentApprovedEvent.OutputObject
+  >;
+  getEvent(
     key: "OwnershipTransferred"
   ): TypedContractEvent<
     OwnershipTransferredEvent.InputTuple,
@@ -832,7 +853,7 @@ export interface AssetContract extends BaseContract {
       DataExtendedEvent.OutputObject
     >;
 
-    "DataIssued(uint256,bytes32,uint256,uint256)": TypedContractEvent<
+    "DataIssued(uint256,bytes32,uint256)": TypedContractEvent<
       DataIssuedEvent.InputTuple,
       DataIssuedEvent.OutputTuple,
       DataIssuedEvent.OutputObject
@@ -852,6 +873,17 @@ export interface AssetContract extends BaseContract {
       DataValidatedEvent.InputTuple,
       DataValidatedEvent.OutputTuple,
       DataValidatedEvent.OutputObject
+    >;
+
+    "DocumentApproved(bytes32)": TypedContractEvent<
+      DocumentApprovedEvent.InputTuple,
+      DocumentApprovedEvent.OutputTuple,
+      DocumentApprovedEvent.OutputObject
+    >;
+    DocumentApproved: TypedContractEvent<
+      DocumentApprovedEvent.InputTuple,
+      DocumentApprovedEvent.OutputTuple,
+      DocumentApprovedEvent.OutputObject
     >;
 
     "OwnershipTransferred(address,address)": TypedContractEvent<

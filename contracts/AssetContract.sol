@@ -71,6 +71,11 @@ contract AssetContract is ERC721A, Ownable {
         uint256 createdDated
     );
 
+    /**
+     * @dev Emitted when a Data's on-chain URL is set.  
+     * @param tokenId        The unique identifier for the Data token.
+     * @param onChainUrl     The on-chain URL of the Data.
+     */
     event SetDataURL(uint256 indexed tokenId, string onChainUrl);
 
     /**
@@ -94,6 +99,10 @@ contract AssetContract is ERC721A, Ownable {
      */
     event DataExtended(bytes32 indexed dataHash, uint256 indexed extendDate);
 
+    /**
+     * @dev Emitted when a document type is approved.
+     * @param docTypeHash  The unique hash representing the document type.
+     */
     event DocumentApproved(bytes32 indexed docTypeHash);
 
     /**
