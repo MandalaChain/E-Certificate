@@ -21,7 +21,7 @@ async function main() {
 
   const [owner] = await ethers.getSigners();
   console.log("Setup address for development for address", owner.address);
-  await contract.approveDocType(owner.address);
+  await contract.setApproveClient(owner.address, true);
   console.log("Done");
 }
 

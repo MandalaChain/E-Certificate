@@ -13,8 +13,10 @@ export default class NftContractProvider {
         if (await ethers.provider.getCode(CollectionConfig.contractAddress) === '0x') {
         throw '\x1b[31merror\x1b[0m ' + `Can't find a contract deployed to the target address: ${CollectionConfig.contractAddress}`;
         }
+
+        const [owner] = await ethers.getSigners();
         
-        return await ethers.getContractAt(CollectionConfig.contractName, CollectionConfig.contractAddress) as unknown as ContractType;
+        return await ethers.getContractAt(CollectionConfig.contractName, CollectionConfig.contractAddress, owner) as unknown as ContractType;
     }
 };
   

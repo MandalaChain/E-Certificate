@@ -6,9 +6,9 @@ const CollectionConfig: CollectionConfigInterface = {
     testnet: Networks.niskala,
     mainnet: Networks.arbitrumOne,
     contractName: "AssetContract",
-    tokenName: "Levy Voucher Qr",
-    tokenSymbol: "LVQ",
-    contractAddress: "0x0f01F5B3585202BaEFf2294bd0E1576332Fa6531",
+    tokenName: "Data Asset Digital",
+    tokenSymbol: "DAD",
+    contractAddress: "0x0E9f04dcC6855a33c1E807e0efA12187851D39B4",
     //marketplaceIdentifier: "market-place-identifier",
     //marketplaceConfig: Marketpalce.openSea
 };
