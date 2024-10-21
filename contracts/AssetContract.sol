@@ -194,7 +194,7 @@ contract AssetContract is ERC721A, Ownable {
         bytes32 dataHash,
         bytes32 docType,
         string memory assetData
-    ) external _checkOwnerAndDocType(msg.sender, docType) {
+    ) external {
         // Check if the data already exists
         if (_dataHashes[dataHash] != 0) {
             revert DataAlreadyExists();
@@ -249,7 +249,7 @@ contract AssetContract is ERC721A, Ownable {
         bytes32 dataHash,
         bytes32 docType,
         string memory url
-    ) external _checkOwnerAndDocType(msg.sender, docType) {
+    ) external {
         (, uint256 _tokenId) = _getTokenData(dataHash, docType);
         _assetData[_tokenId][docType].onChainUrl = url;
         emit SetDataURL(_tokenId, url);
@@ -268,7 +268,7 @@ contract AssetContract is ERC721A, Ownable {
     function redeemData(
         bytes32 dataHash,
         bytes32 docType
-    ) external _checkOwnerAndDocType(msg.sender, docType) {
+    ) external {
         (Data memory _data, uint256 _tokenId) = _getTokenData(
             dataHash,
             docType
