@@ -22,10 +22,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.AssetContract__factory>;
     getContractFactory(
-      name: "LevyContract",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.LevyContract__factory>;
-    getContractFactory(
       name: "ERC721A__IERC721Receiver",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ERC721A__IERC721Receiver__factory>;
@@ -49,11 +45,6 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.AssetContract>;
     getContractAt(
-      name: "LevyContract",
-      address: string | ethers.Addressable,
-      signer?: ethers.Signer
-    ): Promise<Contracts.LevyContract>;
-    getContractAt(
       name: "ERC721A__IERC721Receiver",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
@@ -78,10 +69,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.AssetContract>;
     deployContract(
-      name: "LevyContract",
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.LevyContract>;
-    deployContract(
       name: "ERC721A__IERC721Receiver",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ERC721A__IERC721Receiver>;
@@ -104,11 +91,6 @@ declare module "hardhat/types/runtime" {
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.AssetContract>;
-    deployContract(
-      name: "LevyContract",
-      args: any[],
-      signerOrOptions?: ethers.Signer | DeployContractOptions
-    ): Promise<Contracts.LevyContract>;
     deployContract(
       name: "ERC721A__IERC721Receiver",
       args: any[],

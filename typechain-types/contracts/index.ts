@@ -2,4 +2,3 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { AssetContract } from "./AssetContract";
-export type { LevyContract } from "./LevyContract";

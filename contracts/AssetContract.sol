@@ -4,93 +4,93 @@ pragma solidity ^0.8.24;
 import {ERC721A} from "erc721a/contracts/ERC721A.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-error VoucherNotExist();
-error VoucherAlreadyExists();
-error VoucherStillActive();
+error DataNotExist();
+error DataAlreadyExists();
+error DataStillActive();
 error Unauthorized();
 error InvalidTokenId();
-error VoucherAlreadyRedeemed();
-error VoucherExpired();
+error DataAlreadyRedeemed();
+error DataExpired();
 error TransferNotAllowed();
 error TokenNotExists();
 error InvalidDate();
 
 /**
  * @title AssetContract
- * @dev ERC721A contract for managing Levy Vouchers as soulbound tokens.
- *      Vouchers are issued, verified, redeemed, and extended, ensuring uniqueness and immutability.
+ * @dev ERC721A contract for managing asset Datas as soulbound tokens.
+ *      Datas are issued, verified, redeemed, and extended, ensuring uniqueness and immutability.
  */
 contract AssetContract is ERC721A, Ownable {
     /**
-     * @dev Enum representing the status of a levy voucher.
-     * @param Active    The voucher is active and can be redeemed.
-     * @param Redeemed  The voucher has been redeemed and cannot be used again.
-     * @param Expired   The voucher has expired and is no longer valid.
+     * @dev Enum representing the status of a asset Data.
+     * @param Active    The Data is active and can be redeemed.
+     * @param Redeemed  The Data has been redeemed and cannot be used again.
+     * @param Expired   The Data has expired and is no longer valid.
      */
-    enum LevyStatus {
+    enum AssetStatus {
         Active,
         Redeemed,
         Expired
     }
 
     /**
-     * @dev Struct representing the details of a levy voucher.
-     * @param user              The user associated with the voucher.
-     * @param voucherCode       A unique code identifying the voucher.
-     * @param levyExpiredDate   The expiration date of the voucher.
-     * @param levyStatus        The current status of the voucher.
+     * @dev Struct representing the details of a asset Data.
+     * @param user              The user associated with the Data.
+     * @param DataCode       A unique code identifying the Data.
+     * @param assetExpiredDate   The expiration date of the Data.
+     * @param assetStatus        The current status of the Data.
      */
-    struct Voucher {
+    struct Data {
         string user;
         uint256 createdDated;
-        uint256 levyExpiredDate;
-        LevyStatus levyStatus;
+        uint256 assetExpiredDate;
+        AssetStatus assetStatus;
         string onChainUrl;
     }
 
-    /// @notice Mapping from voucher hash to token ID.
-    mapping(bytes32 => uint256) private _voucherHashes;
+    /// @notice Mapping from Data hash to token ID.
+    mapping(bytes32 => uint256) private _dataHashes;
 
-    /// @notice Mapping from token ID to Voucher details.
-    mapping(uint256 => Voucher) private _levyVoucher;
+    /// @notice Mapping from token ID to Data details.
+    mapping(uint256 => Data) private _assetData;
 
     /**
-     * @dev Emitted when a new voucher is issued.
-     * @param tokenId       The unique identifier for the issued voucher token.
-     * @param voucherHash   The unique hash representing the voucher data.
-     * @param expiryDate    The expiration date of the voucher.
-     * @param createdDated  The date the voucher was created.
+     * @dev Emitted when a new Data is issued.
+     * @param tokenId       The unique identifier for the issued Data token.
+     * @param dataHash   The unique hash representing the Data data.
+     * @param expiryDate    The expiration date of the Data.
+     * @param createdDated  The date the Data was created.
      */
-    event VoucherIssued(
+    event DataIssued(
         uint256 indexed tokenId,
-        bytes32 voucherHash,
+        bytes32 dataHash,
         uint256 expiryDate,
         uint256 createdDated
     );
 
-    event SetVoucherURL(uint256 indexed tokenId, string onChainUrl);
+    event SetDataURL(uint256 indexed tokenId, string onChainUrl);
 
     /**
-     * @dev Emitted when a voucher is validated.
-     * @param voucherHash  The unique hash representing the voucher data.
-     * @param isValid      Indicates whether the voucher is valid.
+     * @dev Emitted when a Data is validated.
+     * @param dataHash  The unique hash representing the Data data.
+     * @param isValid      Indicates whether the Data is valid.
      */
-    event VoucherValidated(bytes32 voucherHash, bool isValid);
+    event DataValidated(bytes32 dataHash, bool isValid);
 
     /**
-     * @dev Emitted when a voucher is redeemed.
-     * @param tokenId        The unique identifier for the redeemed voucher token.
-     * @param redeemedBy     The address that redeemed the voucher.
+     * @dev Emitted when a Data is redeemed.
+     * @param tokenId        The unique identifier for the redeemed Data token.
+     * @param redeemedBy     The address that redeemed the Data.
      */
     event Redeemed(uint256 tokenId, address redeemedBy);
 
     /**
-     * @dev Emitted when a voucher's expiration date is extended.
-     * @param voucherHash  The unique hash representing the voucher data.
-     * @param extendDate   The new expiration date of the voucher.
+     * @dev Emitted when a Data's expiration date is extended.
+     * @param dataHash  The unique hash representing the Data data.
+     * @param extendDate   The new expiration date of the Data.
      */
-    event VoucherExtended(
-        bytes32 indexed voucherHash,
+    event DataExtended(
+        bytes32 indexed dataHash,
         uint256 indexed extendDate
     );
 
@@ -110,25 +110,25 @@ contract AssetContract is ERC721A, Ownable {
      */
 
     /**
-     * @notice Mints a new levy voucher.
+     * @notice Mints a new asset data.
      * @dev Can only be called by the contract owner.
-     *      Generates a unique hash for the voucher and ensures no duplicates.
+     *      Generates a unique hash for the data and ensures no duplicates.
      *
-     * @param voucherHash   The unique hash representing the voucher data.
-     * @param userData      The user associated with the voucher.
-     * @param expiryDate    The expiration date of the voucher.
+     * @param dataHash   The unique hash representing the data data.
+     * @param userData      The user associated with the data.
+     * @param expiryDate    The expiration date of the data.
      *
      * Requirements:
-     * - The voucher hash must not already exist.
+     * - The data hash must not already exist.
      */
-    function mintVoucher(
-        bytes32 voucherHash,
+    function mintData(
+        bytes32 dataHash,
         string memory userData,
         uint256 expiryDate
     ) external onlyOwner {
-        // Check if the voucher already exists
-        if (_voucherHashes[voucherHash] != 0) {
-            revert VoucherAlreadyExists();
+        // Check if the data already exists
+        if (_dataHashes[dataHash] != 0) {
+            revert DataAlreadyExists();
         }
 
         uint256 _timeCreated = block.timestamp;
@@ -139,138 +139,138 @@ contract AssetContract is ERC721A, Ownable {
         uint256 tokenId = _nextTokenId();
         _mint(owner(), 1);
 
-        _voucherHashes[voucherHash] = tokenId;
-        _levyVoucher[tokenId] = Voucher({
+        _dataHashes[dataHash] = tokenId;
+        _assetData[tokenId] = Data({
             user: userData,
             createdDated: _timeCreated,
-            levyExpiredDate: expiryDate,
-            levyStatus: LevyStatus.Active,
+            assetExpiredDate: expiryDate,
+            assetStatus: AssetStatus.Active,
             onChainUrl: ""
         });
 
-        emit VoucherIssued(tokenId, voucherHash, expiryDate, _timeCreated);
+        emit DataIssued(tokenId, dataHash, expiryDate, _timeCreated);
     }
 
     /**
-     * @notice Verifies the validity of a voucher based on its hash.
-     * @dev Returns true if the voucher exists, is not expired, and has not been redeemed.
-     * @param voucherHash The unique hash representing the voucher data.
+     * @notice Verifies the validity of a data based on its hash.
+     * @dev Returns true if the data exists, is not expired, and has not been redeemed.
+     * @param dataHash The unique hash representing the data data.
      */
-    function verifyVoucher(bytes32 voucherHash) external {
-        (Voucher memory _voucher, uint256 _tokenId) = _getTokenVoucher(
-            voucherHash
+    function verifyData(bytes32 dataHash) external {
+        (Data memory _data, uint256 _tokenId) = _getTokenData(
+            dataHash
         );
-        if (_voucher.levyStatus == LevyStatus.Redeemed) {
-            revert VoucherAlreadyRedeemed();
+        if (_data.assetStatus == AssetStatus.Redeemed) {
+            revert DataAlreadyRedeemed();
         }
-        if (_voucher.levyStatus == LevyStatus.Expired) {
-            revert VoucherExpired();
+        if (_data.assetStatus == AssetStatus.Expired) {
+            revert DataExpired();
         }
-        if (_isExpired(_voucher, _tokenId)) {
-            revert VoucherExpired();
+        if (_isExpired(_data, _tokenId)) {
+            revert DataExpired();
         }
-        emit VoucherValidated(voucherHash, true);
+        emit DataValidated(dataHash, true);
     }
 
     /**
-     * @notice Sets the on-chain URL of a voucher.
+     * @notice Sets the on-chain URL of a data.
      * @dev Can only be called by the contract owner.
-     * @param voucherHash The unique hash representing the voucher data.
-     * @param url         The on-chain URL of the voucher.
+     * @param dataHash The unique hash representing the data data.
+     * @param url         The on-chain URL of the data.
      * 
      * Requirements:
-     * - The voucher must exist.
+     * - The data must exist.
      */
     function setOnChainURL(
-        bytes32 voucherHash,
+        bytes32 dataHash,
         string memory url
     ) external onlyOwner {
-        (, uint256 _tokenId) = _getTokenVoucher(voucherHash);
-        _levyVoucher[_tokenId].onChainUrl = url;
-        emit SetVoucherURL(_tokenId, url);
+        (, uint256 _tokenId) = _getTokenData(dataHash);
+        _assetData[_tokenId].onChainUrl = url;
+        emit SetDataURL(_tokenId, url);
     }
 
     /**
-     * @notice Redeems a voucher by updating its status to Redeemed.
+     * @notice Redeems a data by updating its status to Redeemed.
      * @dev Can only be called by the contract owner.
-     * @param voucherHash The unique identifier for the voucher token to be redeemed.
+     * @param dataHash The unique identifier for the data token to be redeemed.
      *
      * Requirements:
-     * - The voucher must exist.
-     * - The voucher must not be expired.
-     * - The voucher must not have been redeemed already.
+     * - The data must exist.
+     * - The data must not be expired.
+     * - The data must not have been redeemed already.
      */
-    function redeemVoucher(bytes32 voucherHash) external onlyOwner {
-        (Voucher memory _voucher, uint256 _tokenId) = _getTokenVoucher(
-            voucherHash
+    function redeemData(bytes32 dataHash) external onlyOwner {
+        (Data memory _data, uint256 _tokenId) = _getTokenData(
+            dataHash
         );
-        if (!_isExpired(_voucher, _tokenId)) {
-            revert VoucherStillActive();
+        if (!_isExpired(_data, _tokenId)) {
+            revert DataStillActive();
         }
-        if (_voucher.levyStatus == LevyStatus.Redeemed) {
-            revert VoucherAlreadyRedeemed();
+        if (_data.assetStatus == AssetStatus.Redeemed) {
+            revert DataAlreadyRedeemed();
         }
 
         // Update status to Redeemed
-        _levyVoucher[_tokenId].levyStatus = LevyStatus.Redeemed;
+        _assetData[_tokenId].assetStatus = AssetStatus.Redeemed;
 
         emit Redeemed(_tokenId, msg.sender);
     }
 
     /**
-     * @notice Retrieves the voucher data associated with a specific hash.
-     * @param voucherHash The unique hash representing the voucher data.
-     * @return Voucher The Voucher struct containing all voucher details.
+     * @notice Retrieves the data data associated with a specific hash.
+     * @param dataHash The unique hash representing the data data.
+     * @return data The data struct containing all data details.
      *
      * Requirements:
-     * - The voucher must exist.
+     * - The data must exist.
      * - The token ID associated with the hash must be valid.
      */
-    function getVoucherData(
-        bytes32 voucherHash
-    ) external view returns (Voucher memory) {
-        (Voucher memory _voucher, ) = _getTokenVoucher(voucherHash);
-        return _voucher;
+    function getAssetData(
+        bytes32 dataHash
+    ) external view returns (Data memory) {
+        (Data memory _data, ) = _getTokenData(dataHash);
+        return _data;
     }
 
     /**
-     * @notice Retrieves time created of the voucher data associated with a specific hash.
-     * @param voucherHash The unique hash representing the voucher data.
-     * @return Time created of the voucher.
+     * @notice Retrieves time created of the data data associated with a specific hash.
+     * @param dataHash The unique hash representing the data data.
+     * @return Time created of the data.
      *
      * Requirements:
-     * - The voucher must exist.
+     * - The data must exist.
      * - The token ID associated with the hash must be valid.
      */
-    function getDateMintingVoucher(
-        bytes32 voucherHash
+    function getDateMintingData(
+        bytes32 dataHash
     ) external view returns (uint256) {
-        uint256 _tokenId = _voucherHashes[voucherHash];
-        if (_tokenId == 0) revert VoucherNotExist();
+        uint256 _tokenId = _dataHashes[dataHash];
+        if (_tokenId == 0) revert DataNotExist();
         if (!_exists(_tokenId)) revert InvalidTokenId();
-        return _levyVoucher[_tokenId].createdDated;
+        return _assetData[_tokenId].createdDated;
     }
 
     /**
-     * @notice Extends the expiration date of an existing voucher.
+     * @notice Extends the expiration date of an existing data.
      * @dev Can only be called by the contract owner.
-     * @param voucherHash The unique hash representing the voucher data.
-     * @param extendDate  The new expiration date to set for the voucher.
+     * @param dataHash The unique hash representing the data data.
+     * @param extendDate  The new expiration date to set for the data.
      *
      * Requirements:
-     * - The voucher must exist.
+     * - The data must exist.
      * - The token ID associated with the hash must be valid.
-     * - The voucher must have been redeemed before it can be extended.
+     * - The data must have been redeemed before it can be extended.
      */
-    function extendLevy(
-        bytes32 voucherHash,
+    function extendData(
+        bytes32 dataHash,
         uint256 extendDate
     ) external onlyOwner {
-        (Voucher memory _voucher, uint256 _tokenId) = _getTokenVoucher(
-            voucherHash
+        (Data memory _data, uint256 _tokenId) = _getTokenData(
+            dataHash
         );
-        if (_voucher.levyStatus == LevyStatus.Redeemed) {
-            revert VoucherAlreadyRedeemed();
+        if (_data.assetStatus == AssetStatus.Redeemed) {
+            revert DataAlreadyRedeemed();
         }
         if (extendDate == 0) {
             revert InvalidDate();
@@ -278,11 +278,11 @@ contract AssetContract is ERC721A, Ownable {
         if (extendDate < block.timestamp) {
             revert InvalidDate();
         }
-        if (extendDate < _voucher.levyExpiredDate) {
+        if (extendDate < _data.assetExpiredDate) {
             revert InvalidDate();
         }
-        _levyVoucher[_tokenId].levyExpiredDate = extendDate;
-        emit VoucherExtended(voucherHash, extendDate);
+        _assetData[_tokenId].assetExpiredDate = extendDate;
+        emit DataExtended(dataHash, extendDate);
     }
 
     /**
@@ -292,43 +292,43 @@ contract AssetContract is ERC721A, Ownable {
      */
 
     /**
-     * @dev Checks if a voucher has expired based on the current block timestamp.
-     * @param _voucher The Voucher struct containing the expiration date.
-     * @param _tokenId The token id from the voucher.
-     * @return bool True if the voucher has expired, false otherwise.
+     * @dev Checks if a data has expired based on the current block timestamp.
+     * @param _data The data struct containing the expiration date.
+     * @param _tokenId The token id from the data.
+     * @return bool True if the data has expired, false otherwise.
      */
     function _isExpired(
-        Voucher memory _voucher,
+        Data memory _data,
         uint256 _tokenId
     ) internal returns (bool) {
-        if (block.timestamp > _voucher.levyExpiredDate) {
-            _levyVoucher[_tokenId].levyStatus = LevyStatus.Expired;
+        if (block.timestamp > _data.assetExpiredDate) {
+            _assetData[_tokenId].assetStatus = AssetStatus.Expired;
             return true;
         }
         return false;
     }
 
     /**
-     * @notice Retrieves the token ID associated with a given voucher hash.
-     * @param _voucherHash The unique hash representing the voucher data.
-     * @return uint256 The token ID associated with the voucher hash and the voucher data.
+     * @notice Retrieves the token ID associated with a given data hash.
+     * @param _dataHash The unique hash representing the data data.
+     * @return uint256 The token ID associated with the data hash and the data data.
      *
      * Requirements:
-     * - The voucher must exist.
+     * - The data must exist.
      * - Token must exist.
      */
-    function _getTokenVoucher(
-        bytes32 _voucherHash
-    ) internal view returns (Voucher memory, uint256) {
-        uint256 _tokenId = _voucherHashes[_voucherHash];
+    function _getTokenData(
+        bytes32 _dataHash
+    ) internal view returns (Data memory, uint256) {
+        uint256 _tokenId = _dataHashes[_dataHash];
         if (_tokenId == 0) {
-            revert VoucherNotExist();
+            revert DataNotExist();
         }
         if (!_exists(_tokenId)) {
             revert TokenNotExists();
         }
 
-        return (_levyVoucher[_tokenId], _tokenId);
+        return (_assetData[_tokenId], _tokenId);
     }
 
     /**

@@ -2,4 +2,3 @@
 /* tslint:disable */
 /* eslint-disable */
 export { AssetContract__factory } from "./AssetContract__factory";
-export { LevyContract__factory } from "./LevyContract__factory";

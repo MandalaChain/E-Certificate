@@ -12,8 +12,6 @@ export type { Ownable } from "./@openzeppelin/contracts/access/Ownable";
 export { Ownable__factory } from "./factories/@openzeppelin/contracts/access/Ownable__factory";
 export type { AssetContract } from "./contracts/AssetContract";
 export { AssetContract__factory } from "./factories/contracts/AssetContract__factory";
-export type { LevyContract } from "./contracts/LevyContract";
-export { LevyContract__factory } from "./factories/contracts/LevyContract__factory";
 export type { ERC721A__IERC721Receiver } from "./erc721a/contracts/ERC721A.sol/ERC721A__IERC721Receiver";
 export { ERC721A__IERC721Receiver__factory } from "./factories/erc721a/contracts/ERC721A.sol/ERC721A__IERC721Receiver__factory";
 export type { ERC721A } from "./erc721a/contracts/ERC721A.sol/ERC721A";
