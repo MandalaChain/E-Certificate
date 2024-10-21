@@ -35,13 +35,14 @@ contract AssetContract is ERC721A, Ownable {
 
     /**
      * @dev Struct representing the details of a asset Data.
-     * @param user              The user associated with the Data.
-     * @param DataCode       A unique code identifying the Data.
+     * @param data              The data associated with the Data.
+     * @param createdDated      The date the Data was created.
      * @param assetExpiredDate   The expiration date of the Data.
      * @param assetStatus        The current status of the Data.
+     * @param onChainUrl         The on-chain URL of the Data.
      */
     struct Data {
-        string user;
+        string data;
         uint256 createdDated;
         uint256 assetExpiredDate;
         AssetStatus assetStatus;
@@ -115,7 +116,7 @@ contract AssetContract is ERC721A, Ownable {
      *      Generates a unique hash for the data and ensures no duplicates.
      *
      * @param dataHash   The unique hash representing the data data.
-     * @param userData      The user associated with the data.
+     * @param assetData      The user associated with the data.
      * @param expiryDate    The expiration date of the data.
      *
      * Requirements:
@@ -123,7 +124,7 @@ contract AssetContract is ERC721A, Ownable {
      */
     function mintData(
         bytes32 dataHash,
-        string memory userData,
+        string memory assetData,
         uint256 expiryDate
     ) external onlyOwner {
         // Check if the data already exists
@@ -141,7 +142,7 @@ contract AssetContract is ERC721A, Ownable {
 
         _dataHashes[dataHash] = tokenId;
         _assetData[tokenId] = Data({
-            user: userData,
+            data: assetData,
             createdDated: _timeCreated,
             assetExpiredDate: expiryDate,
             assetStatus: AssetStatus.Active,
