@@ -25,6 +25,17 @@ npx solhint 'contracts/**/*.sol'
 npx solhint 'contracts/**/*.sol' --fix
 ```
 
+# Localhost Development
+1. running local hardhat node
+```bash
+yarn local-node
+```
+2. create new tab, and deploy the contract using this commant
+```bash
+yarn deploy-localhost
+```
+
+
 # Etherscan verification
 
 To try out Etherscan verification, you first need to deploy a contract to an Ethereum network that's supported by Etherscan, such as Ropsten.
