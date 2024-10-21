@@ -58,7 +58,7 @@ contract AssetContract is ERC721A, Ownable {
     mapping(bytes32 => uint256) private _dataHashes;
 
     /// @notice Mapping from token ID to Data details.
-    mapping(uint256 => Data) private _assetData;
+    mapping(uint256 => mapping(bytes32 => Data)) private _assetData;
 
     /**
      * @dev Emitted when a new Data is issued.
