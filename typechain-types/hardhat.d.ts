@@ -18,6 +18,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Ownable__factory>;
     getContractFactory(
+      name: "AssetContract",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.AssetContract__factory>;
+    getContractFactory(
       name: "LevyContract",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.LevyContract__factory>;
@@ -40,6 +44,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.Ownable>;
     getContractAt(
+      name: "AssetContract",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.AssetContract>;
+    getContractAt(
       name: "LevyContract",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
@@ -64,6 +73,10 @@ declare module "hardhat/types/runtime" {
       name: "Ownable",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Ownable>;
+    deployContract(
+      name: "AssetContract",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.AssetContract>;
     deployContract(
       name: "LevyContract",
       signerOrOptions?: ethers.Signer | DeployContractOptions
@@ -86,6 +99,11 @@ declare module "hardhat/types/runtime" {
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.Ownable>;
+    deployContract(
+      name: "AssetContract",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.AssetContract>;
     deployContract(
       name: "LevyContract",
       args: any[],

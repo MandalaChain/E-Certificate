@@ -16,11 +16,11 @@ error TokenNotExists();
 error InvalidDate();
 
 /**
- * @title LevyContract
+ * @title AssetContract
  * @dev ERC721A contract for managing Levy Vouchers as soulbound tokens.
  *      Vouchers are issued, verified, redeemed, and extended, ensuring uniqueness and immutability.
  */
-contract LevyContract is ERC721A, Ownable {
+contract AssetContract is ERC721A, Ownable {
     /**
      * @dev Enum representing the status of a levy voucher.
      * @param Active    The voucher is active and can be redeemed.
