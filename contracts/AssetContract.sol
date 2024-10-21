@@ -49,6 +49,9 @@ contract AssetContract is ERC721A, Ownable {
         string onChainUrl;
     }
 
+    /// @notice Mapping from token ID to approved document types.
+    mapping(bytes32 => bool) private _approceDocTypes;
+
     /// @notice Mapping from Data hash to token ID.
     mapping(bytes32 => uint256) private _dataHashes;
 
