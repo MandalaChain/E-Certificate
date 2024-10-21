@@ -130,6 +130,41 @@ contract AssetContract is ERC721A, Ownable {
 
     /**
      ** =============================================================================
+     **                               ADMIN FUNCTION
+     ** =============================================================================
+     */
+    /**
+     * @notice Approves a document type.
+     * @dev Can only be called by the contract owner.
+     * @param docType The unique identifier for the document type to be approved.
+     *
+     * Requirements:
+     * - The document type must not already be approved.
+     */
+    function approveDocType(string memory docType) external onlyOwner {
+        bytes32 _docTypeHash = keccak256(abi.encode(docType));
+        if (_approceDocTypes[_docTypeHash]) {
+            revert DocumentAlreadyApproved();
+        }
+        _approceDocTypes[_docTypeHash] = true;
+        emit DocumentApproved(_docTypeHash);
+    }
+
+    /**
+     * @notice Approves an owner.
+     * @dev Can only be called by the contract owner.
+     * @param _client The address of the owner to be approved.
+     * @param status  The approval status of the owner.
+     *
+     * Requirements:
+     * - The owner must not already be approved.
+     */
+    function setApproveClient(address _client, bool status) external onlyOwner {
+        _approveOwner[_client] = status;
+    }
+
+    /**
+     ** =============================================================================
      **                              EXTERNAL FUNCTION
      ** =============================================================================
      */
@@ -208,23 +243,6 @@ contract AssetContract is ERC721A, Ownable {
         (, uint256 _tokenId) = _getTokenData(dataHash, docType);
         _assetData[_tokenId][docType].onChainUrl = url;
         emit SetDataURL(_tokenId, url);
-    }
-
-    /**
-     * @notice Approves a document type.
-     * @dev Can only be called by the contract owner.
-     * @param docType The unique identifier for the document type to be approved.
-     *
-     * Requirements:
-     * - The document type must not already be approved.
-     */
-    function approveDocType(string memory docType) external onlyOwner {
-        bytes32 _docTypeHash = keccak256(abi.encode(docType));
-        if (_approceDocTypes[_docTypeHash]) {
-            revert DocumentAlreadyApproved();
-        }
-        _approceDocTypes[_docTypeHash] = true;
-        emit DocumentApproved(_docTypeHash);
     }
 
     /**
