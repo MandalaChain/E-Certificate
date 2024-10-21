@@ -6,15 +6,13 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 error DataNotExist();
 error DataAlreadyExists();
-error DataStillActive();
-error Unauthorized();
 error InvalidTokenId();
 error DataAlreadyRedeemed();
 error DataExpired();
 error TransferNotAllowed();
 error TokenNotExists();
-error InvalidDate();
 error DocumentNotApproved();
+error DocumentAlreadyApproved();
 
 /**
  * @title AssetContract
@@ -38,14 +36,12 @@ contract AssetContract is ERC721A, Ownable {
      * @dev Struct representing the details of a asset Data.
      * @param data              The data associated with the Data.
      * @param createdDated      The date the Data was created.
-     * @param assetExpiredDate   The expiration date of the Data.
      * @param assetStatus        The current status of the Data.
      * @param onChainUrl         The on-chain URL of the Data.
      */
     struct Data {
         string data;
         uint256 createdDated;
-        uint256 assetExpiredDate;
         AssetStatus assetStatus;
         string onChainUrl;
     }
@@ -62,14 +58,12 @@ contract AssetContract is ERC721A, Ownable {
     /**
      * @dev Emitted when a new Data is issued.
      * @param tokenId       The unique identifier for the issued Data token.
-     * @param dataHash   The unique hash representing the Data data.
-     * @param expiryDate    The expiration date of the Data.
+     * @param dataHash   The unique hash representing the Data data
      * @param createdDated  The date the Data was created.
      */
     event DataIssued(
         uint256 indexed tokenId,
         bytes32 dataHash,
-        uint256 expiryDate,
         uint256 createdDated
     );
 
@@ -99,6 +93,8 @@ contract AssetContract is ERC721A, Ownable {
         uint256 indexed extendDate
     );
 
+    event DocumentApproved(bytes32 indexed docTypeHash);
+
     /**
      * @dev Initializes the contract by setting the token name and symbol.
      *      Also sets the deployer as the initial owner.
@@ -121,16 +117,14 @@ contract AssetContract is ERC721A, Ownable {
      *
      * @param dataHash   The unique hash representing the data data.
      * @param assetData      The user associated with the data.
-     * @param expiryDate    The expiration date of the data.
      *
      * Requirements:
      * - The data hash must not already exist.
      */
     function mintData(
         bytes32 dataHash,
-        bytes32 docType,
-        string memory assetData,
-        uint256 expiryDate
+        bytes32 docType, 
+        string memory assetData
     ) external onlyOwner {
         // Check if the data already exists
         if (_dataHashes[dataHash] != 0) {
@@ -142,24 +136,19 @@ contract AssetContract is ERC721A, Ownable {
             revert DocumentNotApproved();
         }
 
-        uint256 _timeCreated = block.timestamp;
-        if (expiryDate < _timeCreated) {
-            revert InvalidDate();
-        }
-
         uint256 tokenId = _nextTokenId();
         _mint(owner(), 1);
 
+        uint256 _timeCreated = block.timestamp;
         _dataHashes[dataHash] = tokenId;
         _assetData[tokenId][docType] = Data({
             data: assetData,
             createdDated: _timeCreated,
-            assetExpiredDate: expiryDate,
             assetStatus: AssetStatus.Active,
             onChainUrl: ""
         });
 
-        emit DataIssued(tokenId, dataHash, expiryDate, _timeCreated);
+        emit DataIssued(tokenId, dataHash, _timeCreated);
     }
 
     /**
@@ -168,16 +157,13 @@ contract AssetContract is ERC721A, Ownable {
      * @param dataHash The unique hash representing the data data.
      */
     function verifyData(bytes32 dataHash, bytes32 docType) external {
-        (Data memory _data, uint256 _tokenId) = _getTokenData(
+        (Data memory _data, ) = _getTokenData(
             dataHash, docType
         );
         if (_data.assetStatus == AssetStatus.Redeemed) {
             revert DataAlreadyRedeemed();
         }
         if (_data.assetStatus == AssetStatus.Expired) {
-            revert DataExpired();
-        }
-        if (_isExpired(_data, docType, _tokenId)) {
             revert DataExpired();
         }
         emit DataValidated(dataHash, true);
@@ -203,6 +189,23 @@ contract AssetContract is ERC721A, Ownable {
     }
 
     /**
+     * @notice Approves a document type.
+     * @dev Can only be called by the contract owner.
+     * @param docType The unique identifier for the document type to be approved.
+     *
+     * Requirements:
+     * - The document type must not already be approved.
+     */
+    function approveDocType(string memory docType) external onlyOwner {
+        bytes32 _docTypeHash = keccak256(abi.encode(docType));
+        if (_approceDocTypes[_docTypeHash]) {
+            revert DocumentAlreadyApproved();
+        }
+        _approceDocTypes[_docTypeHash] = true;
+        emit DocumentApproved(_docTypeHash);
+    }
+
+    /**
      * @notice Redeems a data by updating its status to Redeemed.
      * @dev Can only be called by the contract owner.
      * @param dataHash The unique identifier for the data token to be redeemed.
@@ -216,9 +219,6 @@ contract AssetContract is ERC721A, Ownable {
         (Data memory _data, uint256 _tokenId) = _getTokenData(
             dataHash, docType
         );
-        if (!_isExpired(_data, docType, _tokenId)) {
-            revert DataStillActive();
-        }
         if (_data.assetStatus == AssetStatus.Redeemed) {
             revert DataAlreadyRedeemed();
         }
@@ -266,63 +266,10 @@ contract AssetContract is ERC721A, Ownable {
     }
 
     /**
-     * @notice Extends the expiration date of an existing data.
-     * @dev Can only be called by the contract owner.
-     * @param dataHash The unique hash representing the data data.
-     * @param extendDate  The new expiration date to set for the data.
-     *
-     * Requirements:
-     * - The data must exist.
-     * - The token ID associated with the hash must be valid.
-     * - The data must have been redeemed before it can be extended.
-     */
-    function extendData(
-        bytes32 dataHash,
-        bytes32 docType,
-        uint256 extendDate
-    ) external onlyOwner {
-        (Data memory _data, uint256 _tokenId) = _getTokenData(
-            dataHash, docType
-        );
-        if (_data.assetStatus == AssetStatus.Redeemed) {
-            revert DataAlreadyRedeemed();
-        }
-        if (extendDate == 0) {
-            revert InvalidDate();
-        }
-        if (extendDate < block.timestamp) {
-            revert InvalidDate();
-        }
-        if (extendDate < _data.assetExpiredDate) {
-            revert InvalidDate();
-        }
-        _assetData[_tokenId][docType].assetExpiredDate = extendDate;
-        emit DataExtended(dataHash, extendDate);
-    }
-
-    /**
      ** =============================================================================
      **                              INTERNAL FUNCTION
      ** =============================================================================
      */
-
-    /**
-     * @dev Checks if a data has expired based on the current block timestamp.
-     * @param _data The data struct containing the expiration date.
-     * @param _tokenId The token id from the data.
-     * @return bool True if the data has expired, false otherwise.
-     */
-    function _isExpired(
-        Data memory _data,
-        bytes32 docType,
-        uint256 _tokenId
-    ) internal returns (bool) {
-        if (block.timestamp > _data.assetExpiredDate) {
-            _assetData[_tokenId][docType].assetStatus = AssetStatus.Expired;
-            return true;
-        }
-        return false;
-    }
 
     /**
      * @notice Retrieves the token ID associated with a given data hash.
