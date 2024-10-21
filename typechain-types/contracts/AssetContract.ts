@@ -335,16 +335,19 @@ export namespace DataIssuedEvent {
   export type InputTuple = [
     tokenId: BigNumberish,
     dataHash: BytesLike,
+    docType: BytesLike,
     createdDated: BigNumberish
   ];
   export type OutputTuple = [
     tokenId: bigint,
     dataHash: string,
+    docType: string,
     createdDated: bigint
   ];
   export interface OutputObject {
     tokenId: bigint;
     dataHash: string;
+    docType: string;
     createdDated: bigint;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
@@ -853,7 +856,7 @@ export interface AssetContract extends BaseContract {
       DataExtendedEvent.OutputObject
     >;
 
-    "DataIssued(uint256,bytes32,uint256)": TypedContractEvent<
+    "DataIssued(uint256,bytes32,bytes32,uint256)": TypedContractEvent<
       DataIssuedEvent.InputTuple,
       DataIssuedEvent.OutputTuple,
       DataIssuedEvent.OutputObject
