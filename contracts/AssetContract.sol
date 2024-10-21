@@ -14,6 +14,7 @@ error DataExpired();
 error TransferNotAllowed();
 error TokenNotExists();
 error InvalidDate();
+error DocumentNotApproved();
 
 /**
  * @title AssetContract
@@ -35,7 +36,6 @@ contract AssetContract is ERC721A, Ownable {
 
     /**
      * @dev Struct representing the details of a asset Data.
-     * @param docType           The document type of the Data.
      * @param data              The data associated with the Data.
      * @param createdDated      The date the Data was created.
      * @param assetExpiredDate   The expiration date of the Data.
@@ -43,7 +43,6 @@ contract AssetContract is ERC721A, Ownable {
      * @param onChainUrl         The on-chain URL of the Data.
      */
     struct Data {
-        bytes32 docType;
         string data;
         uint256 createdDated;
         uint256 assetExpiredDate;
@@ -129,12 +128,18 @@ contract AssetContract is ERC721A, Ownable {
      */
     function mintData(
         bytes32 dataHash,
+        bytes32 docType,
         string memory assetData,
         uint256 expiryDate
     ) external onlyOwner {
         // Check if the data already exists
         if (_dataHashes[dataHash] != 0) {
             revert DataAlreadyExists();
+        }
+
+        // Check docType is approve or not
+        if (!_approceDocTypes[docType]) {
+            revert DocumentNotApproved();
         }
 
         uint256 _timeCreated = block.timestamp;
@@ -146,7 +151,7 @@ contract AssetContract is ERC721A, Ownable {
         _mint(owner(), 1);
 
         _dataHashes[dataHash] = tokenId;
-        _assetData[tokenId] = Data({
+        _assetData[tokenId][docType] = Data({
             data: assetData,
             createdDated: _timeCreated,
             assetExpiredDate: expiryDate,
@@ -162,9 +167,9 @@ contract AssetContract is ERC721A, Ownable {
      * @dev Returns true if the data exists, is not expired, and has not been redeemed.
      * @param dataHash The unique hash representing the data data.
      */
-    function verifyData(bytes32 dataHash) external {
+    function verifyData(bytes32 dataHash, bytes32 docType) external {
         (Data memory _data, uint256 _tokenId) = _getTokenData(
-            dataHash
+            dataHash, docType
         );
         if (_data.assetStatus == AssetStatus.Redeemed) {
             revert DataAlreadyRedeemed();
@@ -172,7 +177,7 @@ contract AssetContract is ERC721A, Ownable {
         if (_data.assetStatus == AssetStatus.Expired) {
             revert DataExpired();
         }
-        if (_isExpired(_data, _tokenId)) {
+        if (_isExpired(_data, docType, _tokenId)) {
             revert DataExpired();
         }
         emit DataValidated(dataHash, true);
@@ -189,10 +194,11 @@ contract AssetContract is ERC721A, Ownable {
      */
     function setOnChainURL(
         bytes32 dataHash,
+        bytes32 docType,
         string memory url
     ) external onlyOwner {
-        (, uint256 _tokenId) = _getTokenData(dataHash);
-        _assetData[_tokenId].onChainUrl = url;
+        (, uint256 _tokenId) = _getTokenData(dataHash, docType);
+        _assetData[_tokenId][docType].onChainUrl = url;
         emit SetDataURL(_tokenId, url);
     }
 
@@ -206,11 +212,11 @@ contract AssetContract is ERC721A, Ownable {
      * - The data must not be expired.
      * - The data must not have been redeemed already.
      */
-    function redeemData(bytes32 dataHash) external onlyOwner {
+    function redeemData(bytes32 dataHash, bytes32 docType) external onlyOwner {
         (Data memory _data, uint256 _tokenId) = _getTokenData(
-            dataHash
+            dataHash, docType
         );
-        if (!_isExpired(_data, _tokenId)) {
+        if (!_isExpired(_data, docType, _tokenId)) {
             revert DataStillActive();
         }
         if (_data.assetStatus == AssetStatus.Redeemed) {
@@ -218,7 +224,7 @@ contract AssetContract is ERC721A, Ownable {
         }
 
         // Update status to Redeemed
-        _assetData[_tokenId].assetStatus = AssetStatus.Redeemed;
+        _assetData[_tokenId][docType].assetStatus = AssetStatus.Redeemed;
 
         emit Redeemed(_tokenId, msg.sender);
     }
@@ -233,9 +239,10 @@ contract AssetContract is ERC721A, Ownable {
      * - The token ID associated with the hash must be valid.
      */
     function getAssetData(
-        bytes32 dataHash
+        bytes32 dataHash,
+        bytes32 docType
     ) external view returns (Data memory) {
-        (Data memory _data, ) = _getTokenData(dataHash);
+        (Data memory _data, ) = _getTokenData(dataHash, docType);
         return _data;
     }
 
@@ -249,12 +256,13 @@ contract AssetContract is ERC721A, Ownable {
      * - The token ID associated with the hash must be valid.
      */
     function getDateMintingData(
-        bytes32 dataHash
+        bytes32 dataHash,
+        bytes32 docType
     ) external view returns (uint256) {
         uint256 _tokenId = _dataHashes[dataHash];
         if (_tokenId == 0) revert DataNotExist();
         if (!_exists(_tokenId)) revert InvalidTokenId();
-        return _assetData[_tokenId].createdDated;
+        return _assetData[_tokenId][docType].createdDated;
     }
 
     /**
@@ -270,10 +278,11 @@ contract AssetContract is ERC721A, Ownable {
      */
     function extendData(
         bytes32 dataHash,
+        bytes32 docType,
         uint256 extendDate
     ) external onlyOwner {
         (Data memory _data, uint256 _tokenId) = _getTokenData(
-            dataHash
+            dataHash, docType
         );
         if (_data.assetStatus == AssetStatus.Redeemed) {
             revert DataAlreadyRedeemed();
@@ -287,7 +296,7 @@ contract AssetContract is ERC721A, Ownable {
         if (extendDate < _data.assetExpiredDate) {
             revert InvalidDate();
         }
-        _assetData[_tokenId].assetExpiredDate = extendDate;
+        _assetData[_tokenId][docType].assetExpiredDate = extendDate;
         emit DataExtended(dataHash, extendDate);
     }
 
@@ -305,10 +314,11 @@ contract AssetContract is ERC721A, Ownable {
      */
     function _isExpired(
         Data memory _data,
+        bytes32 docType,
         uint256 _tokenId
     ) internal returns (bool) {
         if (block.timestamp > _data.assetExpiredDate) {
-            _assetData[_tokenId].assetStatus = AssetStatus.Expired;
+            _assetData[_tokenId][docType].assetStatus = AssetStatus.Expired;
             return true;
         }
         return false;
@@ -324,7 +334,8 @@ contract AssetContract is ERC721A, Ownable {
      * - Token must exist.
      */
     function _getTokenData(
-        bytes32 _dataHash
+        bytes32 _dataHash,
+        bytes32 docType
     ) internal view returns (Data memory, uint256) {
         uint256 _tokenId = _dataHashes[_dataHash];
         if (_tokenId == 0) {
@@ -334,7 +345,7 @@ contract AssetContract is ERC721A, Ownable {
             revert TokenNotExists();
         }
 
-        return (_assetData[_tokenId], _tokenId);
+        return (_assetData[_tokenId][docType], _tokenId);
     }
 
     /**

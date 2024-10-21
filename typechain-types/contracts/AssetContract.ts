@@ -25,7 +25,7 @@ import type {
 
 export declare namespace AssetContract {
   export type DataStruct = {
-    user: string;
+    data: string;
     createdDated: BigNumberish;
     assetExpiredDate: BigNumberish;
     assetStatus: BigNumberish;
@@ -33,13 +33,13 @@ export declare namespace AssetContract {
   };
 
   export type DataStructOutput = [
-    user: string,
+    data: string,
     createdDated: bigint,
     assetExpiredDate: bigint,
     assetStatus: bigint,
     onChainUrl: string
   ] & {
-    user: string;
+    data: string;
     createdDated: bigint;
     assetExpiredDate: bigint;
     assetStatus: bigint;
@@ -100,7 +100,7 @@ export interface AssetContractInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "extendData",
-    values: [BytesLike, BigNumberish]
+    values: [BytesLike, BytesLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getApproved",
@@ -108,11 +108,11 @@ export interface AssetContractInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getAssetData",
-    values: [BytesLike]
+    values: [BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getDateMintingData",
-    values: [BytesLike]
+    values: [BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "isApprovedForAll",
@@ -120,7 +120,7 @@ export interface AssetContractInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "mintData",
-    values: [BytesLike, string, BigNumberish]
+    values: [BytesLike, BytesLike, string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
@@ -130,7 +130,7 @@ export interface AssetContractInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "redeemData",
-    values: [BytesLike]
+    values: [BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
@@ -150,7 +150,7 @@ export interface AssetContractInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setOnChainURL",
-    values: [BytesLike, string]
+    values: [BytesLike, BytesLike, string]
   ): string;
   encodeFunctionData(
     functionFragment: "supportsInterface",
@@ -175,7 +175,7 @@ export interface AssetContractInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "verifyData",
-    values: [BytesLike]
+    values: [BytesLike, BytesLike]
   ): string;
 
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
@@ -468,7 +468,7 @@ export interface AssetContract extends BaseContract {
   balanceOf: TypedContractMethod<[owner: AddressLike], [bigint], "view">;
 
   extendData: TypedContractMethod<
-    [dataHash: BytesLike, extendDate: BigNumberish],
+    [dataHash: BytesLike, docType: BytesLike, extendDate: BigNumberish],
     [void],
     "nonpayable"
   >;
@@ -476,13 +476,13 @@ export interface AssetContract extends BaseContract {
   getApproved: TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
 
   getAssetData: TypedContractMethod<
-    [dataHash: BytesLike],
+    [dataHash: BytesLike, docType: BytesLike],
     [AssetContract.DataStructOutput],
     "view"
   >;
 
   getDateMintingData: TypedContractMethod<
-    [dataHash: BytesLike],
+    [dataHash: BytesLike, docType: BytesLike],
     [bigint],
     "view"
   >;
@@ -494,7 +494,12 @@ export interface AssetContract extends BaseContract {
   >;
 
   mintData: TypedContractMethod<
-    [dataHash: BytesLike, userData: string, expiryDate: BigNumberish],
+    [
+      dataHash: BytesLike,
+      docType: BytesLike,
+      assetData: string,
+      expiryDate: BigNumberish
+    ],
     [void],
     "nonpayable"
   >;
@@ -505,7 +510,11 @@ export interface AssetContract extends BaseContract {
 
   ownerOf: TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
 
-  redeemData: TypedContractMethod<[dataHash: BytesLike], [void], "nonpayable">;
+  redeemData: TypedContractMethod<
+    [dataHash: BytesLike, docType: BytesLike],
+    [void],
+    "nonpayable"
+  >;
 
   renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
 
@@ -533,7 +542,7 @@ export interface AssetContract extends BaseContract {
   >;
 
   setOnChainURL: TypedContractMethod<
-    [dataHash: BytesLike, url: string],
+    [dataHash: BytesLike, docType: BytesLike, url: string],
     [void],
     "nonpayable"
   >;
@@ -562,7 +571,11 @@ export interface AssetContract extends BaseContract {
     "nonpayable"
   >;
 
-  verifyData: TypedContractMethod<[dataHash: BytesLike], [void], "nonpayable">;
+  verifyData: TypedContractMethod<
+    [dataHash: BytesLike, docType: BytesLike],
+    [void],
+    "nonpayable"
+  >;
 
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
@@ -581,7 +594,7 @@ export interface AssetContract extends BaseContract {
   getFunction(
     nameOrSignature: "extendData"
   ): TypedContractMethod<
-    [dataHash: BytesLike, extendDate: BigNumberish],
+    [dataHash: BytesLike, docType: BytesLike, extendDate: BigNumberish],
     [void],
     "nonpayable"
   >;
@@ -591,13 +604,17 @@ export interface AssetContract extends BaseContract {
   getFunction(
     nameOrSignature: "getAssetData"
   ): TypedContractMethod<
-    [dataHash: BytesLike],
+    [dataHash: BytesLike, docType: BytesLike],
     [AssetContract.DataStructOutput],
     "view"
   >;
   getFunction(
     nameOrSignature: "getDateMintingData"
-  ): TypedContractMethod<[dataHash: BytesLike], [bigint], "view">;
+  ): TypedContractMethod<
+    [dataHash: BytesLike, docType: BytesLike],
+    [bigint],
+    "view"
+  >;
   getFunction(
     nameOrSignature: "isApprovedForAll"
   ): TypedContractMethod<
@@ -608,7 +625,12 @@ export interface AssetContract extends BaseContract {
   getFunction(
     nameOrSignature: "mintData"
   ): TypedContractMethod<
-    [dataHash: BytesLike, userData: string, expiryDate: BigNumberish],
+    [
+      dataHash: BytesLike,
+      docType: BytesLike,
+      assetData: string,
+      expiryDate: BigNumberish
+    ],
     [void],
     "nonpayable"
   >;
@@ -623,7 +645,11 @@ export interface AssetContract extends BaseContract {
   ): TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
   getFunction(
     nameOrSignature: "redeemData"
-  ): TypedContractMethod<[dataHash: BytesLike], [void], "nonpayable">;
+  ): TypedContractMethod<
+    [dataHash: BytesLike, docType: BytesLike],
+    [void],
+    "nonpayable"
+  >;
   getFunction(
     nameOrSignature: "renounceOwnership"
   ): TypedContractMethod<[], [void], "nonpayable">;
@@ -656,7 +682,7 @@ export interface AssetContract extends BaseContract {
   getFunction(
     nameOrSignature: "setOnChainURL"
   ): TypedContractMethod<
-    [dataHash: BytesLike, url: string],
+    [dataHash: BytesLike, docType: BytesLike, url: string],
     [void],
     "nonpayable"
   >;
@@ -684,7 +710,11 @@ export interface AssetContract extends BaseContract {
   ): TypedContractMethod<[newOwner: AddressLike], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "verifyData"
-  ): TypedContractMethod<[dataHash: BytesLike], [void], "nonpayable">;
+  ): TypedContractMethod<
+    [dataHash: BytesLike, docType: BytesLike],
+    [void],
+    "nonpayable"
+  >;
 
   getEvent(
     key: "Approval"
