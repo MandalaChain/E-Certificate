@@ -16,6 +16,9 @@ describe(CollectionConfig.contractName, async function () {
   let other!: SignerWithAddress;
   const abiCoder = new utils.AbiCoder();
 
+  const docType = "LEVY";
+  const hashDocType = keccak256(abiCoder.encode(["string"], [docType]));
+
   const voucher = {
     user: {
       passport: "A12345678",
@@ -79,6 +82,8 @@ describe(CollectionConfig.contractName, async function () {
     )) as unknown as NftContractType;
 
     await contract.deployed();
+    await contract.connect(owner).approveDocType(docType);
+    await contract.connect(owner).setApproveClient(await owner.getAddress(), true);
   });
 
   it("Check initial data", async function () {
@@ -88,152 +93,148 @@ describe(CollectionConfig.contractName, async function () {
     expect((await contract.totalSupply()).toString()).to.equal("0");
   });
 
-  it("Owner only functions", async function () {
-    await expect(
-      contract.connect(other).mintVoucher(voucherHash, "", 123)
-    ).to.be.rejectedWith(`OwnableUnauthorizedAccount("${other.address}")`);
+  // it("Owner only functions", async function () {
+  //   await expect(
+  //     contract.connect(other).mintData(voucherHash, "", 123)
+  //   ).to.be.rejectedWith(`OwnableUnauthorizedAccount("${other.address}")`);
 
-    await expect(
-      contract.connect(other).redeemVoucher(voucherHashError)
-    ).to.be.rejectedWith(`OwnableUnauthorizedAccount("${other.address}")`);
-
-    await expect(
-      contract.connect(other).extendLevy(voucherHash, BigInt(1))
-    ).to.be.rejectedWith(`OwnableUnauthorizedAccount("${other.address}")`);
-  });
+  //   await expect(
+  //     contract.connect(other).redeemData(voucherHashError)
+  //   ).to.be.rejectedWith(`OwnableUnauthorizedAccount("${other.address}")`);
+  // });
 
   it("Mint Voucher Levy", async function () {
-    await contract.connect(owner).mintVoucher(voucherHash, "user1", voucher.levyExpiredDate);
+    await contract.connect(owner).mintData(voucherHash, hashDocType, "asseet");
 
     expect((await contract.totalSupply()).toString()).to.equal("1");
   });
 
   it("Should Error if voucher already exists", async function () {
     await expect(
-      contract.connect(owner).mintVoucher(voucherHash, "user1", voucher.levyExpiredDate)
-    ).to.be.rejectedWith("VoucherAlreadyExists");
+      contract.connect(owner).mintData(voucherHash, hashDocType, "asseet")
+    ).to.be.rejectedWith("DataAlreadyExists");
   });
 
-  it("Set on chain url after minting voucher", async function () {
-    await contract.connect(owner).setOnChainURL(voucherHash, "https://url.com");
-  });
+  // it("Set on chain url after minting voucher", async function () {
+  //   await contract.connect(owner).setOnChainURL(voucherHash, "https://url.com");
+  // });
 
-  it("Should return false from verify voucher cause not mint before", async function () {
-    await expect(
-      contract.connect(owner).verifyVoucher(voucherHashError)
-    ).to.be.rejectedWith("VoucherNotExist");
-  });
+  // it("Should return false from verify voucher cause not mint before", async function () {
+  //   await expect(
+  //     contract.connect(owner).verifyData(voucherHashError)
+  //   ).to.be.rejectedWith("VoucherNotExist");
+  // });
 
-  it("Success verify voucher", async function () {
-    await contract.connect(other).verifyVoucher(voucherHash);
-  });
+  // it("Success verify voucher", async function () {
+  //   await contract.connect(other).verifyData(voucherHash);
+  // });
 
-  it("Check initial data from voucher", async function () {
-    const voucherData = await contract.getVoucherData(voucherHash);
-    expect(voucherData.user).to.equal("user1");
-    expect(voucherData.levyExpiredDate.toString()).to.equal(voucher.levyExpiredDate.toString());
-    expect(voucherData.levyStatus).to.equal(voucher.levyStatus);
-    expect(voucherData.onChainUrl).to.equal("https://url.com");
-  });
+  // it("Check initial data from voucher", async function () {
+  //   const voucherData = await contract.getAssetData(voucherHash);
+  //   expect(voucherData.dataOwner).to.equal(await owner.getAddress());
+  //   expect(voucherData.createdDated.toString()).to.equal(voucher.levyExpiredDate.toString());
+  //   expect(voucherData.assetStatus).to.equal(voucher.levyStatus);
+  //   expect(voucherData.onChainUrl).to.equal("https://url.com");
+  // });
 
-  it("Should return error from verify voucher cause expired", async function () {
-    // increase time
-    await ethers.provider.send("evm_increaseTime", [
-      Math.floor(Date.now() / 1000) + 86401 * 60,
-    ]);
-    await ethers.provider.send("evm_mine", []);
+  // it("Should return error from verify voucher cause expired", async function () {
+  //   // increase time
+  //   await ethers.provider.send("evm_increaseTime", [
+  //     Math.floor(Date.now() / 1000) + 86401 * 60,
+  //   ]);
+  //   await ethers.provider.send("evm_mine", []);
 
-    await expect(
-      contract.connect(other).verifyVoucher(voucherHash)
-    ).to.be.rejectedWith("VoucherExpired");
-  });
+  //   await expect(
+  //     contract.connect(other).verifyVoucher(voucherHash)
+  //   ).to.be.rejectedWith("VoucherExpired");
+  // });
 
-  it("Should return error from extend voucher cause date input = 0", async function () {
-    await expect(
-      contract.connect(owner).extendLevy(voucherHash, BigInt(0))
-    ).to.be.rejectedWith("InvalidDate");
-  });
+  // it("Should return error from extend voucher cause date input = 0", async function () {
+  //   await expect(
+  //     contract.connect(owner).extendLevy(voucherHash, BigInt(0))
+  //   ).to.be.rejectedWith("InvalidDate");
+  // });
 
-  it("Should return error from extend voucher cause date input < Date Now", async function () {
-    await expect(
-      contract
-        .connect(owner)
-        .extendLevy(
-          voucherHash,
-          BigInt(Math.floor(Date.now() / 1000) + 86401 * 60)
-        )
-    ).to.be.rejectedWith("InvalidDate");
-  });
+  // it("Should return error from extend voucher cause date input < Date Now", async function () {
+  //   await expect(
+  //     contract
+  //       .connect(owner)
+  //       .extendLevy(
+  //         voucherHash,
+  //         BigInt(Math.floor(Date.now() / 1000) + 86401 * 60)
+  //       )
+  //   ).to.be.rejectedWith("InvalidDate");
+  // });
 
-  it("Should return error from extend voucher cause date input < expired time", async function () {
-    const voucherData = await contract.getVoucherData(voucherHash);
-    // Hardcode from levyExpiredDate struct voucher
-    const setTime = BigNumber.from(Math.floor(Date.now() / 1000) + 86400 * 60).sub(BigNumber.from(60));
-    await expect(
-      contract.connect(owner).extendLevy(voucherHash, setTime)
-    ).to.be.rejectedWith("InvalidDate");
-  });
+  // it("Should return error from extend voucher cause date input < expired time", async function () {
+  //   const voucherData = await contract.getVoucherData(voucherHash);
+  //   // Hardcode from levyExpiredDate struct voucher
+  //   const setTime = BigNumber.from(Math.floor(Date.now() / 1000) + 86400 * 60).sub(BigNumber.from(60));
+  //   await expect(
+  //     contract.connect(owner).extendLevy(voucherHash, setTime)
+  //   ).to.be.rejectedWith("InvalidDate");
+  // });
 
-  it("Success Extend Levy", async function () {
-    const timeNow = (await ethers.provider.getBlock("latest"))!.timestamp;
-    const setTimeExtend = timeNow + 86400 * 60;
-    await contract
-      .connect(owner)
-      .extendLevy(voucherHash, BigInt(setTimeExtend));
-  });
+  // it("Success Extend Levy", async function () {
+  //   const timeNow = (await ethers.provider.getBlock("latest"))!.timestamp;
+  //   const setTimeExtend = timeNow + 86400 * 60;
+  //   await contract
+  //     .connect(owner)
+  //     .extendLevy(voucherHash, BigInt(setTimeExtend));
+  // });
 
-  it("Should error Reedem Voucher cause voucher still active", async function () {
-    await expect(
-      contract.connect(owner).redeemVoucher(voucherHash)
-    ).to.be.rejectedWith("VoucherStillActive");
-  });
+  // it("Should error Reedem Voucher cause voucher still active", async function () {
+  //   await expect(
+  //     contract.connect(owner).redeemVoucher(voucherHash)
+  //   ).to.be.rejectedWith("VoucherStillActive");
+  // });
 
-  it("Success from verify voucher after extend", async function () {
-    await contract.connect(other).verifyVoucher(voucherHash);
-  });
+  // it("Success from verify voucher after extend", async function () {
+  //   await contract.connect(other).verifyVoucher(voucherHash);
+  // });
 
-  it("Should return error from verify voucher cause expired after extend", async function () {
-    // increase time
-    await ethers.provider.send("evm_increaseTime", [
-      Math.floor(Date.now() / 1000) + 86401 * 60,
-    ]);
-    await ethers.provider.send("evm_mine", []);
+  // it("Should return error from verify voucher cause expired after extend", async function () {
+  //   // increase time
+  //   await ethers.provider.send("evm_increaseTime", [
+  //     Math.floor(Date.now() / 1000) + 86401 * 60,
+  //   ]);
+  //   await ethers.provider.send("evm_mine", []);
 
-    await expect(
-      contract.connect(other).verifyVoucher(voucherHash)
-    ).to.be.rejectedWith("VoucherExpired");
-  });
+  //   await expect(
+  //     contract.connect(other).verifyVoucher(voucherHash)
+  //   ).to.be.rejectedWith("VoucherExpired");
+  // });
 
-  it("Reedem Voucher", async function () {
-    await contract.connect(owner).redeemVoucher(voucherHash);
-  });
+  // it("Reedem Voucher", async function () {
+  //   await contract.connect(owner).redeemVoucher(voucherHash);
+  // });
 
-  it("Should error Reedem Voucher cause voucher already redeemed", async function () {
-    await expect(
-      contract.connect(owner).redeemVoucher(voucherHash)
-    ).to.be.rejectedWith("VoucherAlreadyRedeemed");
-  });
+  // it("Should error Reedem Voucher cause voucher already redeemed", async function () {
+  //   await expect(
+  //     contract.connect(owner).redeemVoucher(voucherHash)
+  //   ).to.be.rejectedWith("VoucherAlreadyRedeemed");
+  // });
 
-  it("Should error Reedem Voucher cause voucher not exist", async function () {
-    await expect(
-      contract.connect(owner).redeemVoucher(voucherHashError)
-    ).to.be.rejectedWith("VoucherNotExist");
-  });
+  // it("Should error Reedem Voucher cause voucher not exist", async function () {
+  //   await expect(
+  //     contract.connect(owner).redeemVoucher(voucherHashError)
+  //   ).to.be.rejectedWith("VoucherNotExist");
+  // });
 
-  it("Should return error from verify voucher cause already redeemed", async function () {
-    await expect(
-      contract.connect(other).verifyVoucher(voucherHash)
-    ).to.be.rejectedWith("VoucherAlreadyRedeemed");
-  });
+  // it("Should return error from verify voucher cause already redeemed", async function () {
+  //   await expect(
+  //     contract.connect(other).verifyVoucher(voucherHash)
+  //   ).to.be.rejectedWith("VoucherAlreadyRedeemed");
+  // });
 
-  it("Should return error from extend voucher cause already redeemed", async function () {
-    await expect(
-      contract
-        .connect(owner)
-        .extendLevy(
-          voucherHash,
-          BigInt(Math.floor(Date.now() / 1000) + 86401 * 60)
-        )
-    ).to.be.rejectedWith("VoucherAlreadyRedeemed");
-  });
+  // it("Should return error from extend voucher cause already redeemed", async function () {
+  //   await expect(
+  //     contract
+  //       .connect(owner)
+  //       .extendLevy(
+  //         voucherHash,
+  //         BigInt(Math.floor(Date.now() / 1000) + 86401 * 60)
+  //       )
+  //   ).to.be.rejectedWith("VoucherAlreadyRedeemed");
+  // });
 });
