@@ -35,12 +35,14 @@ contract AssetContract is ERC721A, Ownable {
 
     /**
      * @dev Struct representing the details of a asset Data.
+     * @param dataOwner         The address that owns the Data.
      * @param data              The data associated with the Data.
      * @param createdDated      The date the Data was created.
-     * @param assetStatus        The current status of the Data.
-     * @param onChainUrl         The on-chain URL of the Data.
+     * @param assetStatus       The current status of the Data.
+     * @param onChainUrl        The on-chain URL of the Data.
      */
     struct Data {
+        address dataOwner;
         string data;
         uint256 createdDated;
         AssetStatus assetStatus;
@@ -62,11 +64,13 @@ contract AssetContract is ERC721A, Ownable {
     /**
      * @dev Emitted when a new Data is issued.
      * @param tokenId       The unique identifier for the issued Data token.
-     * @param dataHash   The unique hash representing the Data data
+     * @param issuer        The address that issued the Data.
+     * @param dataHash      The unique hash representing the Data data
      * @param createdDated  The date the Data was created.
      */
     event DataIssued(
         uint256 indexed tokenId,
+        address issuer,
         bytes32 dataHash,
         bytes32 docType,
         uint256 createdDated
@@ -81,8 +85,8 @@ contract AssetContract is ERC721A, Ownable {
 
     /**
      * @dev Emitted when a Data is validated.
-     * @param dataHash  The unique hash representing the Data data.
-     * @param isValid      Indicates whether the Data is valid.
+     * @param dataHash      The unique hash representing the Data data.
+     * @param isValid       Indicates whether the Data is valid.
      */
     event DataValidated(bytes32 dataHash, bool isValid);
 
@@ -95,14 +99,14 @@ contract AssetContract is ERC721A, Ownable {
 
     /**
      * @dev Emitted when a Data's expiration date is extended.
-     * @param dataHash  The unique hash representing the Data data.
-     * @param extendDate   The new expiration date of the Data.
+     * @param dataHash      The unique hash representing the Data data.
+     * @param extendDate    The new expiration date of the Data.
      */
     event DataExtended(bytes32 indexed dataHash, uint256 indexed extendDate);
 
     /**
      * @dev Emitted when a document type is approved.
-     * @param docTypeHash  The unique hash representing the document type.
+     * @param docTypeHash   The unique hash representing the document type.
      */
     event DocumentApproved(bytes32 indexed docTypeHash);
 
@@ -184,8 +188,8 @@ contract AssetContract is ERC721A, Ownable {
      * @dev Can only be called by the contract owner.
      *      Generates a unique hash for the data and ensures no duplicates.
      *
-     * @param dataHash   The unique hash representing the data data.
-     * @param assetData      The user associated with the data.
+     * @param dataHash      The unique hash representing the data data.
+     * @param assetData     The user associated with the data.
      *
      * Requirements:
      * - The data hash must not already exist.
@@ -211,13 +215,14 @@ contract AssetContract is ERC721A, Ownable {
         uint256 _timeCreated = block.timestamp;
         _dataHashes[dataHash] = tokenId;
         _assetData[tokenId][docType] = Data({
+            dataOwner: msg.sender,
             data: assetData,
             createdDated: _timeCreated,
             assetStatus: AssetStatus.Active,
             onChainUrl: ""
         });
 
-        emit DataIssued(tokenId, dataHash, docType, _timeCreated);
+        emit DataIssued(tokenId, msg.sender, dataHash, docType, _timeCreated);
     }
 
     /**
@@ -239,8 +244,8 @@ contract AssetContract is ERC721A, Ownable {
     /**
      * @notice Sets the on-chain URL of a data.
      * @dev Can only be called by the contract owner.
-     * @param dataHash The unique hash representing the data data.
-     * @param url         The on-chain URL of the data.
+     * @param dataHash  The unique hash representing the data data.
+     * @param url       The on-chain URL of the data.
      *
      * Requirements:
      * - The data must exist.
@@ -357,10 +362,10 @@ contract AssetContract is ERC721A, Ownable {
 
     /**
      * @dev Overrides the ERC721A hook to prevent token transfers, ensuring tokens are soulbound.
-     * @param from        The address transferring the token.
-     * @param to          The address receiving the token.
-     * @param startTokenId The ID of the token being transferred.
-     * @param quantity    The number of tokens being transferred.
+     * @param from          The address transferring the token.
+     * @param to            The address receiving the token.
+     * @param startTokenId  The ID of the token being transferred.
+     * @param quantity      The number of tokens being transferred.
      *
      * Requirements:
      * - Tokens cannot be transferred between addresses after minting.

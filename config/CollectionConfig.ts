@@ -8,7 +8,7 @@ const CollectionConfig: CollectionConfigInterface = {
     contractName: "AssetContract",
     tokenName: "Data Asset Digital",
     tokenSymbol: "DAD",
-    contractAddress: "0x0E9f04dcC6855a33c1E807e0efA12187851D39B4",
+    contractAddress: "0x9b110D1B8d6A27e4D87B69d57bbf4f4dEd209b01",
     //marketplaceIdentifier: "market-place-identifier",
     //marketplaceConfig: Marketpalce.openSea
 };

@@ -25,6 +25,7 @@ import type {
 
 export declare namespace AssetContract {
   export type DataStruct = {
+    dataOwner: AddressLike;
     data: string;
     createdDated: BigNumberish;
     assetStatus: BigNumberish;
@@ -32,11 +33,13 @@ export declare namespace AssetContract {
   };
 
   export type DataStructOutput = [
+    dataOwner: string,
     data: string,
     createdDated: bigint,
     assetStatus: bigint,
     onChainUrl: string
   ] & {
+    dataOwner: string;
     data: string;
     createdDated: bigint;
     assetStatus: bigint;
@@ -334,18 +337,21 @@ export namespace DataExtendedEvent {
 export namespace DataIssuedEvent {
   export type InputTuple = [
     tokenId: BigNumberish,
+    issuer: AddressLike,
     dataHash: BytesLike,
     docType: BytesLike,
     createdDated: BigNumberish
   ];
   export type OutputTuple = [
     tokenId: bigint,
+    issuer: string,
     dataHash: string,
     docType: string,
     createdDated: bigint
   ];
   export interface OutputObject {
     tokenId: bigint;
+    issuer: string;
     dataHash: string;
     docType: string;
     createdDated: bigint;
@@ -856,7 +862,7 @@ export interface AssetContract extends BaseContract {
       DataExtendedEvent.OutputObject
     >;
 
-    "DataIssued(uint256,bytes32,bytes32,uint256)": TypedContractEvent<
+    "DataIssued(uint256,address,bytes32,bytes32,uint256)": TypedContractEvent<
       DataIssuedEvent.InputTuple,
       DataIssuedEvent.OutputTuple,
       DataIssuedEvent.OutputObject
