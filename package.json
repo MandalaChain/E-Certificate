@@ -16,6 +16,7 @@
     "local-node": "hardhat node",
     "deploy": "hardhat run scripts/1_deploy.ts",
     "deploy-localhost": "hardhat run scripts/2_deploy_localhost.ts --network localhost",
+    "deploy-token": "hardhat run scripts/5_deploy_test_token_native.ts",
     "verify": "hardhat verify --constructor-args config/ContractArguments.ts",
     "setup-client": "hardhat run scripts/3_setup_client.ts",
     "setup-doctype": "hardhat run scripts/4_setup_docType.ts"

@@ -104,3 +104,13 @@ export const niskala: NetworkConfigInterface = {
         generateTransactionUrl: (transactionAddress: string) => `https://niskala.mandalachain.io/tx/${transactionAddress}`,
     },
 }
+
+export const devnet: NetworkConfigInterface = {
+    chainId: 895670,
+    symbol: "KPGD",
+    blockExplorer: {
+        name: "Mandala Devnet",
+        generatorContractUrl: (contractAddress: string) => `https://nbs-explorer.mandalachain.io/address/${contractAddress}`,
+        generateTransactionUrl: (transactionAddress: string) => `https://nbs-explorer.mandalachain.io/tx/${transactionAddress}`,
+    },
+}

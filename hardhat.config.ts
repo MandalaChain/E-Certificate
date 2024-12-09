@@ -100,6 +100,11 @@ const config: HardhatUserConfig = {
       chainId: 6025,
       accounts: process.env.NETWORK_TESTNET_PRIVATE_KEY ? [process.env.NETWORK_TESTNET_PRIVATE_KEY] : [],
     },
+    devnet: {
+      url: 'https://nbs.mandalachain.io',
+      chainId: 895670,
+      accounts: process.env.NETWORK_TESTNET_PRIVATE_KEY ? [process.env.NETWORK_TESTNET_PRIVATE_KEY] : [],
+    },
   },
   gasReporter: {
     // enabled: process.env.REPORT_GAS ? true : false,
@@ -123,6 +128,7 @@ const config: HardhatUserConfig = {
       arbitrumOne: process.env.BLOCK_EXPLORER_API_KEY!,
       // Niskala
       niskala: process.env.BLOCK_EXPLORER_API_KEY!,
+      devnet: process.env.BLOCK_EXPLORER_API_KEY!,
     },
     customChains: [
       {
@@ -139,6 +145,14 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: "https://niskala.mandalachain.io/api",
           browserURL: "https://niskala.mandalachain.io"
+        }
+      },
+      {
+        network: "devnet",
+        chainId: 895670,
+        urls: {
+          apiURL: "https://nbs-explorer.mandalachain.io/api",
+          browserURL: "https://https://nbs-explorer.mandalachain.io"
         }
       },
     ],
