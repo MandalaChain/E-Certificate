@@ -194,11 +194,11 @@ contract AssetContract is ERC721A, Ownable {
      * Requirements:
      * - The data hash must not already exist.
      */
-    function mintData(
+    function _mintData(
         bytes32 dataHash,
         bytes32 docType,
         string memory assetData
-    ) external _checkOwnerAndDocType(msg.sender, docType) {
+    ) internal {
         // Check if the data already exists
         if (_dataHashes[dataHash] != 0) {
             revert DataAlreadyExists();
@@ -223,6 +223,22 @@ contract AssetContract is ERC721A, Ownable {
         });
 
         emit DataIssued(tokenId, msg.sender, dataHash, docType, _timeCreated);
+    }
+
+    function mintDataWithCheck(
+        bytes32 dataHash,
+        bytes32 docType,
+        string memory assetData
+    ) external _checkOwnerAndDocType(msg.sender, docType) {
+        _mintData(dataHash, docType, assetData);
+    }
+
+    function mintData(
+        bytes32 dataHash,
+        bytes32 docType,
+        string memory assetData
+    ) external {
+        _mintData(dataHash, docType, assetData);
     }
 
     /**

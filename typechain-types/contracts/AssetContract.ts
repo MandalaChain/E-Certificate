@@ -58,6 +58,7 @@ export interface AssetContractInterface extends Interface {
       | "getDateMintingData"
       | "isApprovedForAll"
       | "mintData"
+      | "mintDataWithCheck"
       | "name"
       | "owner"
       | "ownerOf"
@@ -122,6 +123,10 @@ export interface AssetContractInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "mintData",
+    values: [BytesLike, BytesLike, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "mintDataWithCheck",
     values: [BytesLike, BytesLike, string]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
@@ -207,6 +212,10 @@ export interface AssetContractInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "mintData", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "mintDataWithCheck",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "ownerOf", data: BytesLike): Result;
@@ -523,6 +532,12 @@ export interface AssetContract extends BaseContract {
     "nonpayable"
   >;
 
+  mintDataWithCheck: TypedContractMethod<
+    [dataHash: BytesLike, docType: BytesLike, assetData: string],
+    [void],
+    "nonpayable"
+  >;
+
   name: TypedContractMethod<[], [string], "view">;
 
   owner: TypedContractMethod<[], [string], "view">;
@@ -645,6 +660,13 @@ export interface AssetContract extends BaseContract {
   >;
   getFunction(
     nameOrSignature: "mintData"
+  ): TypedContractMethod<
+    [dataHash: BytesLike, docType: BytesLike, assetData: string],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "mintDataWithCheck"
   ): TypedContractMethod<
     [dataHash: BytesLike, docType: BytesLike, assetData: string],
     [void],
