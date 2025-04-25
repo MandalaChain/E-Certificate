@@ -19,7 +19,8 @@
     "deploy-token": "hardhat run scripts/5_deploy_test_token_native.ts",
     "verify": "hardhat verify --constructor-args config/ContractArguments.ts",
     "setup-client": "hardhat run scripts/3_setup_client.ts",
-    "setup-doctype": "hardhat run scripts/4_setup_docType.ts"
+    "setup-doctype": "hardhat run scripts/4_setup_docType.ts",
+    "mint": "hardhat run scripts/6_test_mint.ts"
   },
   "dependencies": {
     "@nomicfoundation/hardhat-ethers": "^3.0.6",
@@ -37,16 +38,23 @@
     "hardhat-gas-reporter": "^2.1.1",
     "keccak256": "^1.0.6",
     "merkletreejs": "^0.3.11",
+    "node-emoji": "^2.2.0",
     "solidity-coverage": "^0.8.12",
+    "source-map-support": "^0.5.21",
     "ts-node": "^10.9.2",
     "typechain": "^8.3.2",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "viem": "^2.23.6"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@types/chai-as-promised": "^7.1.8",
+    "@types/debug": "^4",
+    "@types/dotenv": "^8.2.3",
+    "@types/source-map-support": "^0",
     "chai-as-promised": "^7.1.2",
     "dotenv": "^16.4.5",
-    "yarn-upgrade-all": "^0.7.2"
+    "yarn-upgrade-all": "^0.7.2",
+    "yocto-queue": "^1.1.1"
   }
 }
