@@ -2,19 +2,19 @@ import chai, { expect } from "chai";
 import ChaiAsPromised from "chai-as-promised";
 import { ethers } from "hardhat";
 import keccak256 from "keccak256";
-import { utils, BigNumber } from "ethers";
+import { toBigInt, AbiCoder } from "ethers";
 import CollectionConfig from "../config/CollectionConfig";
 import ContractArguments from "../config/ContractArguments";
 import { NftContractType } from "../lib/NftContractProvider";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+// import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 chai.use(ChaiAsPromised);
 
 describe(CollectionConfig.contractName, async function () {
   let contract!: NftContractType;
-  let owner!: SignerWithAddress;
-  let other!: SignerWithAddress;
-  const abiCoder = new utils.AbiCoder();
+  let owner!: any;
+  let other!: any;
+  const abiCoder = new AbiCoder();
 
   const docType = "LEVY";
   const hashDocType = keccak256(abiCoder.encode(["string"], [docType]));
@@ -24,10 +24,10 @@ describe(CollectionConfig.contractName, async function () {
       passport: "A12345678",
       name: "John Doe",
       email: "johndoe@example.com",
-      arrivalDate: BigNumber.from(Math.floor(Date.now() / 1000) + 86400), // 1 day from now (Unix timestamp)
+      arrivalDate: toBigInt(Math.floor(Date.now() / 1000) + 86400), // 1 day from now (Unix timestamp)
     },
     voucherCode: "LEVY123456",
-    levyExpiredDate: BigNumber.from(Math.floor(Date.now() / 1000) + 86400 * 60), // 60 days from now
+    levyExpiredDate: toBigInt(Math.floor(Date.now() / 1000) + 86400 * 60), // 60 days from now
     levyStatus: 0, // Active
   };
 
@@ -49,10 +49,10 @@ describe(CollectionConfig.contractName, async function () {
       passport: "A123456789",
       name: "John Doe Romlah",
       email: "johndoe123@example.com",
-      arrivalDate: BigNumber.from(Math.floor(Date.now() / 1000) + 86401), // 1 day from now (Unix timestamp)
+      arrivalDate: toBigInt(Math.floor(Date.now() / 1000) + 86401), // 1 day from now (Unix timestamp)
     },
     voucherCode: "LEVY123456789",
-    levyExpiredDate: BigNumber.from(Math.floor(Date.now() / 1000) + 86401 * 60), // 60 days from now
+    levyExpiredDate: toBigInt(Math.floor(Date.now() / 1000) + 86401 * 60), // 60 days from now
     levyStatus: 2, // Expired
   };
 
@@ -81,7 +81,7 @@ describe(CollectionConfig.contractName, async function () {
       ...ContractArguments
     )) as unknown as NftContractType;
 
-    await contract.deployed();
+    await contract.waitForDeployment();
     await contract.connect(owner).approveDocType(docType);
     await contract.connect(owner).setApproveClient(await owner.getAddress(), true);
   });

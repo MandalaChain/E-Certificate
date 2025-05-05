@@ -33,7 +33,7 @@
     "@types/node": "^20.12.12",
     "chai": "4.4.1",
     "erc721a": "^4.3.0",
-    "ethers": "5.7.2",
+    "ethers": "^6.13.7",
     "hardhat": "^2.22.4",
     "hardhat-gas-reporter": "^2.1.1",
     "keccak256": "^1.0.6",
@@ -56,5 +56,10 @@
     "dotenv": "^16.4.5",
     "yarn-upgrade-all": "^0.7.2",
     "yocto-queue": "^1.1.1"
+  },
+  "resolutions": {
+    "elliptic": "^6.6.1",
+    "ws": "^8.17.1",
+    "cookie": "^0.7.0"
   }
 }
