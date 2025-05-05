@@ -1,6 +1,6 @@
 {
-  "name": "hardhat-boilerplate",
-  "description": "Just Boilerplate",
+  "name": "asset-certificate",
+  "description": "This is the smart contract implementation using NFT for asset certificate",
   "version": "1.0.1",
   "main": ".eslintrc.js",
   "directories": {
