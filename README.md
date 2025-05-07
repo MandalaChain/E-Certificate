@@ -1,7 +1,7 @@
 # AssetContract
 
 ## Overview
-AssetContract is an ERC721A-based soulbound token smart contract for managing asset data records on-chain. It allows issuance, verification, redemption, and extension of data entries, ensuring uniqueness and immutability of asset records.
+AssetContract is an ERC721A-based soulbound token smart contract for managing asset data records on-chain. It allows issuance, verification, redemption, and extension of data entries, ensuring uniqueness and immutability of asset records. AssetContract is one of the smart contracts that running on Mandala Application Chain and Mandala Chain network to help Government and Enterprise to store their data e.g. e-certificate as a digital asset.
 
 ## Contract Details
 - **Solidity version:** ^0.8.24
