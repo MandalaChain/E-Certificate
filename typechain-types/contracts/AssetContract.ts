@@ -50,31 +50,33 @@ export declare namespace AssetContract {
 export interface AssetContractInterface extends Interface {
   getFunction(
     nameOrSignature:
+      | "DEFAULT_ADMIN_ROLE"
+      | "MINTER_ROLE"
       | "approve"
       | "approveDocType"
       | "balanceOf"
       | "getApproved"
       | "getAssetData"
       | "getDateMintingData"
+      | "getRoleAdmin"
+      | "grantRole"
+      | "hasRole"
       | "isApprovedForAll"
       | "mintData"
-      | "mintDataWithCheck"
       | "name"
-      | "owner"
       | "ownerOf"
       | "redeemData"
-      | "renounceOwnership"
+      | "renounceRole"
+      | "revokeRole"
       | "safeTransferFrom(address,address,uint256)"
       | "safeTransferFrom(address,address,uint256,bytes)"
       | "setApprovalForAll"
-      | "setApproveClient"
       | "setOnChainURL"
       | "supportsInterface"
       | "symbol"
       | "tokenURI"
       | "totalSupply"
       | "transferFrom"
-      | "transferOwnership"
       | "verifyData"
   ): FunctionFragment;
 
@@ -83,16 +85,25 @@ export interface AssetContractInterface extends Interface {
       | "Approval"
       | "ApprovalForAll"
       | "ConsecutiveTransfer"
-      | "DataExtended"
       | "DataIssued"
       | "DataValidated"
       | "DocumentApproved"
-      | "OwnershipTransferred"
       | "Redeemed"
+      | "RoleAdminChanged"
+      | "RoleGranted"
+      | "RoleRevoked"
       | "SetDataURL"
       | "Transfer"
   ): EventFragment;
 
+  encodeFunctionData(
+    functionFragment: "DEFAULT_ADMIN_ROLE",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "MINTER_ROLE",
+    values?: undefined
+  ): string;
   encodeFunctionData(
     functionFragment: "approve",
     values: [AddressLike, BigNumberish]
@@ -118,6 +129,18 @@ export interface AssetContractInterface extends Interface {
     values: [BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
+    functionFragment: "getRoleAdmin",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "grantRole",
+    values: [BytesLike, AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "hasRole",
+    values: [BytesLike, AddressLike]
+  ): string;
+  encodeFunctionData(
     functionFragment: "isApprovedForAll",
     values: [AddressLike, AddressLike]
   ): string;
@@ -125,12 +148,7 @@ export interface AssetContractInterface extends Interface {
     functionFragment: "mintData",
     values: [BytesLike, BytesLike, string]
   ): string;
-  encodeFunctionData(
-    functionFragment: "mintDataWithCheck",
-    values: [BytesLike, BytesLike, string]
-  ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
-  encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "ownerOf",
     values: [BigNumberish]
@@ -140,8 +158,12 @@ export interface AssetContractInterface extends Interface {
     values: [BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
-    functionFragment: "renounceOwnership",
-    values?: undefined
+    functionFragment: "renounceRole",
+    values: [BytesLike, AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "revokeRole",
+    values: [BytesLike, AddressLike]
   ): string;
   encodeFunctionData(
     functionFragment: "safeTransferFrom(address,address,uint256)",
@@ -153,10 +175,6 @@ export interface AssetContractInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "setApprovalForAll",
-    values: [AddressLike, boolean]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setApproveClient",
     values: [AddressLike, boolean]
   ): string;
   encodeFunctionData(
@@ -181,14 +199,18 @@ export interface AssetContractInterface extends Interface {
     values: [AddressLike, AddressLike, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "transferOwnership",
-    values: [AddressLike]
-  ): string;
-  encodeFunctionData(
     functionFragment: "verifyData",
     values: [BytesLike, BytesLike]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "DEFAULT_ADMIN_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "MINTER_ROLE",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "approveDocType",
@@ -208,22 +230,24 @@ export interface AssetContractInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "getRoleAdmin",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
+  decodeFunctionResult(
     functionFragment: "isApprovedForAll",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "mintData", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "mintDataWithCheck",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "ownerOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "redeemData", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "renounceOwnership",
+    functionFragment: "renounceRole",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "safeTransferFrom(address,address,uint256)",
     data: BytesLike
@@ -234,10 +258,6 @@ export interface AssetContractInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "setApprovalForAll",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setApproveClient",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -256,10 +276,6 @@ export interface AssetContractInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "transferFrom",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "transferOwnership",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "verifyData", data: BytesLike): Result;
@@ -330,19 +346,6 @@ export namespace ConsecutiveTransferEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
-export namespace DataExtendedEvent {
-  export type InputTuple = [dataHash: BytesLike, extendDate: BigNumberish];
-  export type OutputTuple = [dataHash: string, extendDate: bigint];
-  export interface OutputObject {
-    dataHash: string;
-    extendDate: bigint;
-  }
-  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
-  export type Filter = TypedDeferredTopicFilter<Event>;
-  export type Log = TypedEventLog<Event>;
-  export type LogDescription = TypedLogDescription<Event>;
-}
-
 export namespace DataIssuedEvent {
   export type InputTuple = [
     tokenId: BigNumberish,
@@ -396,12 +399,12 @@ export namespace DocumentApprovedEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
-export namespace OwnershipTransferredEvent {
-  export type InputTuple = [previousOwner: AddressLike, newOwner: AddressLike];
-  export type OutputTuple = [previousOwner: string, newOwner: string];
+export namespace RedeemedEvent {
+  export type InputTuple = [tokenId: BigNumberish, redeemedBy: AddressLike];
+  export type OutputTuple = [tokenId: bigint, redeemedBy: string];
   export interface OutputObject {
-    previousOwner: string;
-    newOwner: string;
+    tokenId: bigint;
+    redeemedBy: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -409,12 +412,57 @@ export namespace OwnershipTransferredEvent {
   export type LogDescription = TypedLogDescription<Event>;
 }
 
-export namespace RedeemedEvent {
-  export type InputTuple = [tokenId: BigNumberish, redeemedBy: AddressLike];
-  export type OutputTuple = [tokenId: bigint, redeemedBy: string];
+export namespace RoleAdminChangedEvent {
+  export type InputTuple = [
+    role: BytesLike,
+    previousAdminRole: BytesLike,
+    newAdminRole: BytesLike
+  ];
+  export type OutputTuple = [
+    role: string,
+    previousAdminRole: string,
+    newAdminRole: string
+  ];
   export interface OutputObject {
-    tokenId: bigint;
-    redeemedBy: string;
+    role: string;
+    previousAdminRole: string;
+    newAdminRole: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace RoleGrantedEvent {
+  export type InputTuple = [
+    role: BytesLike,
+    account: AddressLike,
+    sender: AddressLike
+  ];
+  export type OutputTuple = [role: string, account: string, sender: string];
+  export interface OutputObject {
+    role: string;
+    account: string;
+    sender: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace RoleRevokedEvent {
+  export type InputTuple = [
+    role: BytesLike,
+    account: AddressLike,
+    sender: AddressLike
+  ];
+  export type OutputTuple = [role: string, account: string, sender: string];
+  export interface OutputObject {
+    role: string;
+    account: string;
+    sender: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -496,6 +544,10 @@ export interface AssetContract extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
+  DEFAULT_ADMIN_ROLE: TypedContractMethod<[], [string], "view">;
+
+  MINTER_ROLE: TypedContractMethod<[], [string], "view">;
+
   approve: TypedContractMethod<
     [to: AddressLike, tokenId: BigNumberish],
     [void],
@@ -520,6 +572,20 @@ export interface AssetContract extends BaseContract {
     "view"
   >;
 
+  getRoleAdmin: TypedContractMethod<[role: BytesLike], [string], "view">;
+
+  grantRole: TypedContractMethod<
+    [role: BytesLike, account: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  hasRole: TypedContractMethod<
+    [role: BytesLike, account: AddressLike],
+    [boolean],
+    "view"
+  >;
+
   isApprovedForAll: TypedContractMethod<
     [owner: AddressLike, operator: AddressLike],
     [boolean],
@@ -532,15 +598,7 @@ export interface AssetContract extends BaseContract {
     "nonpayable"
   >;
 
-  mintDataWithCheck: TypedContractMethod<
-    [dataHash: BytesLike, docType: BytesLike, assetData: string],
-    [void],
-    "nonpayable"
-  >;
-
   name: TypedContractMethod<[], [string], "view">;
-
-  owner: TypedContractMethod<[], [string], "view">;
 
   ownerOf: TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
 
@@ -550,7 +608,17 @@ export interface AssetContract extends BaseContract {
     "nonpayable"
   >;
 
-  renounceOwnership: TypedContractMethod<[], [void], "nonpayable">;
+  renounceRole: TypedContractMethod<
+    [role: BytesLike, callerConfirmation: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+
+  revokeRole: TypedContractMethod<
+    [role: BytesLike, account: AddressLike],
+    [void],
+    "nonpayable"
+  >;
 
   "safeTransferFrom(address,address,uint256)": TypedContractMethod<
     [from: AddressLike, to: AddressLike, tokenId: BigNumberish],
@@ -573,12 +641,6 @@ export interface AssetContract extends BaseContract {
     [operator: AddressLike, approved: boolean],
     [void],
     "view"
-  >;
-
-  setApproveClient: TypedContractMethod<
-    [_client: AddressLike, status: boolean],
-    [void],
-    "nonpayable"
   >;
 
   setOnChainURL: TypedContractMethod<
@@ -605,12 +667,6 @@ export interface AssetContract extends BaseContract {
     "payable"
   >;
 
-  transferOwnership: TypedContractMethod<
-    [newOwner: AddressLike],
-    [void],
-    "nonpayable"
-  >;
-
   verifyData: TypedContractMethod<
     [dataHash: BytesLike, docType: BytesLike],
     [void],
@@ -621,6 +677,12 @@ export interface AssetContract extends BaseContract {
     key: string | FunctionFragment
   ): T;
 
+  getFunction(
+    nameOrSignature: "DEFAULT_ADMIN_ROLE"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "MINTER_ROLE"
+  ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "approve"
   ): TypedContractMethod<
@@ -652,6 +714,23 @@ export interface AssetContract extends BaseContract {
     "view"
   >;
   getFunction(
+    nameOrSignature: "getRoleAdmin"
+  ): TypedContractMethod<[role: BytesLike], [string], "view">;
+  getFunction(
+    nameOrSignature: "grantRole"
+  ): TypedContractMethod<
+    [role: BytesLike, account: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "hasRole"
+  ): TypedContractMethod<
+    [role: BytesLike, account: AddressLike],
+    [boolean],
+    "view"
+  >;
+  getFunction(
     nameOrSignature: "isApprovedForAll"
   ): TypedContractMethod<
     [owner: AddressLike, operator: AddressLike],
@@ -666,17 +745,7 @@ export interface AssetContract extends BaseContract {
     "nonpayable"
   >;
   getFunction(
-    nameOrSignature: "mintDataWithCheck"
-  ): TypedContractMethod<
-    [dataHash: BytesLike, docType: BytesLike, assetData: string],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
     nameOrSignature: "name"
-  ): TypedContractMethod<[], [string], "view">;
-  getFunction(
-    nameOrSignature: "owner"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "ownerOf"
@@ -689,8 +758,19 @@ export interface AssetContract extends BaseContract {
     "nonpayable"
   >;
   getFunction(
-    nameOrSignature: "renounceOwnership"
-  ): TypedContractMethod<[], [void], "nonpayable">;
+    nameOrSignature: "renounceRole"
+  ): TypedContractMethod<
+    [role: BytesLike, callerConfirmation: AddressLike],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "revokeRole"
+  ): TypedContractMethod<
+    [role: BytesLike, account: AddressLike],
+    [void],
+    "nonpayable"
+  >;
   getFunction(
     nameOrSignature: "safeTransferFrom(address,address,uint256)"
   ): TypedContractMethod<
@@ -718,13 +798,6 @@ export interface AssetContract extends BaseContract {
     "view"
   >;
   getFunction(
-    nameOrSignature: "setApproveClient"
-  ): TypedContractMethod<
-    [_client: AddressLike, status: boolean],
-    [void],
-    "nonpayable"
-  >;
-  getFunction(
     nameOrSignature: "setOnChainURL"
   ): TypedContractMethod<
     [dataHash: BytesLike, docType: BytesLike, url: string],
@@ -750,9 +823,6 @@ export interface AssetContract extends BaseContract {
     [void],
     "payable"
   >;
-  getFunction(
-    nameOrSignature: "transferOwnership"
-  ): TypedContractMethod<[newOwner: AddressLike], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "verifyData"
   ): TypedContractMethod<
@@ -783,13 +853,6 @@ export interface AssetContract extends BaseContract {
     ConsecutiveTransferEvent.OutputObject
   >;
   getEvent(
-    key: "DataExtended"
-  ): TypedContractEvent<
-    DataExtendedEvent.InputTuple,
-    DataExtendedEvent.OutputTuple,
-    DataExtendedEvent.OutputObject
-  >;
-  getEvent(
     key: "DataIssued"
   ): TypedContractEvent<
     DataIssuedEvent.InputTuple,
@@ -811,18 +874,32 @@ export interface AssetContract extends BaseContract {
     DocumentApprovedEvent.OutputObject
   >;
   getEvent(
-    key: "OwnershipTransferred"
-  ): TypedContractEvent<
-    OwnershipTransferredEvent.InputTuple,
-    OwnershipTransferredEvent.OutputTuple,
-    OwnershipTransferredEvent.OutputObject
-  >;
-  getEvent(
     key: "Redeemed"
   ): TypedContractEvent<
     RedeemedEvent.InputTuple,
     RedeemedEvent.OutputTuple,
     RedeemedEvent.OutputObject
+  >;
+  getEvent(
+    key: "RoleAdminChanged"
+  ): TypedContractEvent<
+    RoleAdminChangedEvent.InputTuple,
+    RoleAdminChangedEvent.OutputTuple,
+    RoleAdminChangedEvent.OutputObject
+  >;
+  getEvent(
+    key: "RoleGranted"
+  ): TypedContractEvent<
+    RoleGrantedEvent.InputTuple,
+    RoleGrantedEvent.OutputTuple,
+    RoleGrantedEvent.OutputObject
+  >;
+  getEvent(
+    key: "RoleRevoked"
+  ): TypedContractEvent<
+    RoleRevokedEvent.InputTuple,
+    RoleRevokedEvent.OutputTuple,
+    RoleRevokedEvent.OutputObject
   >;
   getEvent(
     key: "SetDataURL"
@@ -873,17 +950,6 @@ export interface AssetContract extends BaseContract {
       ConsecutiveTransferEvent.OutputObject
     >;
 
-    "DataExtended(bytes32,uint256)": TypedContractEvent<
-      DataExtendedEvent.InputTuple,
-      DataExtendedEvent.OutputTuple,
-      DataExtendedEvent.OutputObject
-    >;
-    DataExtended: TypedContractEvent<
-      DataExtendedEvent.InputTuple,
-      DataExtendedEvent.OutputTuple,
-      DataExtendedEvent.OutputObject
-    >;
-
     "DataIssued(uint256,address,bytes32,bytes32,uint256)": TypedContractEvent<
       DataIssuedEvent.InputTuple,
       DataIssuedEvent.OutputTuple,
@@ -917,17 +983,6 @@ export interface AssetContract extends BaseContract {
       DocumentApprovedEvent.OutputObject
     >;
 
-    "OwnershipTransferred(address,address)": TypedContractEvent<
-      OwnershipTransferredEvent.InputTuple,
-      OwnershipTransferredEvent.OutputTuple,
-      OwnershipTransferredEvent.OutputObject
-    >;
-    OwnershipTransferred: TypedContractEvent<
-      OwnershipTransferredEvent.InputTuple,
-      OwnershipTransferredEvent.OutputTuple,
-      OwnershipTransferredEvent.OutputObject
-    >;
-
     "Redeemed(uint256,address)": TypedContractEvent<
       RedeemedEvent.InputTuple,
       RedeemedEvent.OutputTuple,
@@ -937,6 +992,39 @@ export interface AssetContract extends BaseContract {
       RedeemedEvent.InputTuple,
       RedeemedEvent.OutputTuple,
       RedeemedEvent.OutputObject
+    >;
+
+    "RoleAdminChanged(bytes32,bytes32,bytes32)": TypedContractEvent<
+      RoleAdminChangedEvent.InputTuple,
+      RoleAdminChangedEvent.OutputTuple,
+      RoleAdminChangedEvent.OutputObject
+    >;
+    RoleAdminChanged: TypedContractEvent<
+      RoleAdminChangedEvent.InputTuple,
+      RoleAdminChangedEvent.OutputTuple,
+      RoleAdminChangedEvent.OutputObject
+    >;
+
+    "RoleGranted(bytes32,address,address)": TypedContractEvent<
+      RoleGrantedEvent.InputTuple,
+      RoleGrantedEvent.OutputTuple,
+      RoleGrantedEvent.OutputObject
+    >;
+    RoleGranted: TypedContractEvent<
+      RoleGrantedEvent.InputTuple,
+      RoleGrantedEvent.OutputTuple,
+      RoleGrantedEvent.OutputObject
+    >;
+
+    "RoleRevoked(bytes32,address,address)": TypedContractEvent<
+      RoleRevokedEvent.InputTuple,
+      RoleRevokedEvent.OutputTuple,
+      RoleRevokedEvent.OutputObject
+    >;
+    RoleRevoked: TypedContractEvent<
+      RoleRevokedEvent.InputTuple,
+      RoleRevokedEvent.OutputTuple,
+      RoleRevokedEvent.OutputObject
     >;
 
     "SetDataURL(uint256,string)": TypedContractEvent<

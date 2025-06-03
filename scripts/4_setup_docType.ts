@@ -1,5 +1,3 @@
-// import { MerkleTree } from "merkletreejs";
-// import keccak256 from "keccak256";
 import { ethers } from "hardhat";
 import NftContractProvider from "../lib/NftContractProvider";
 
@@ -8,11 +6,11 @@ async function main() {
 
     // attach to deploy contract
     const contract = await NftContractProvider.getContract();
+
+    console.log("Setup and verify document types...");
+    await contract.connect(owner).approveDocType("LEVY");
+    await contract.connect(owner).approveDocType("E-CERTIFICATE");
   
-    console.log("Setup address for development for address");
-    // await contract.connect(owner).setApproveClient("0x618D64266bFE4Ec30c05D26cc906480E21ccbFba", true);
-    await contract.connect(owner).setApproveClient("0x64b46309074fbBaA77afF727420F5A02d000ebf8", true);
-    console.log("Done");
 }
 
 main().catch((error) => {

@@ -8,9 +8,8 @@ const CollectionConfig: CollectionConfigInterface = {
     contractName: "AssetContract",
     tokenName: "Data Asset Digital",
     tokenSymbol: "DAD",
-    contractAddress: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-    //marketplaceIdentifier: "market-place-identifier",
-    //marketplaceConfig: Marketpalce.openSea
+    tokenUri: "https://ipfs.io/ipfs/bafkreignrcvv2cwzpgmhpedqg7qpu6cp6qcixbi2ujzskcqkmeauud2rza",
+    contractAddress: "0x15D418654401315a2beD413ce8f558881f399208",
 };
 
 export default CollectionConfig;

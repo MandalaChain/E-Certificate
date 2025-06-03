@@ -2,7 +2,6 @@
 // import keccak256 from "keccak256";
 import { ethers } from "hardhat";
 import keccak256 from "keccak256";
-import { utils } from "ethers";
 import NftContractProvider from "../lib/NftContractProvider";
 
 async function main() {
@@ -10,7 +9,7 @@ async function main() {
 
   // attach to deploy contract
   const contract = await NftContractProvider.getContract();
-  const abiCoder = new utils.AbiCoder();
+  const abiCoder = new ethers.utils.AbiCoder();
 
   const docType = "E-CERTIFICATE";
   const hashDocType = keccak256(abiCoder.encode(["string"], [docType]));
@@ -32,10 +31,8 @@ async function main() {
 }`;
 
   const voucherHash = keccak256(abiCoder.encode(["string"], [voucher]));
-
-  console.log("Setup address for development for address");
-  // await contract.connect(owner).setApproveClient("0x618D64266bFE4Ec30c05D26cc906480E21ccbFba", true);
   await contract.connect(owner).mintData(voucherHash, hashDocType, voucher);
+  
   console.log("Done");
 }
 

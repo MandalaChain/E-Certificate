@@ -2,7 +2,7 @@
 pragma solidity ^0.8.24;
 
 import {ERC721A} from "erc721a/contracts/ERC721A.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
 error DataNotExist();
 error DataAlreadyExists();
@@ -20,7 +20,9 @@ error Unauthorized();
  * @dev ERC721A contract for managing asset Datas as soulbound tokens.
  *      Datas are issued, verified, redeemed, and extended, ensuring uniqueness and immutability.
  */
-contract AssetContract is ERC721A, Ownable {
+contract AssetContract is ERC721A, AccessControl {
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+
     /**
      * @dev Enum representing the status of a asset Data.
      * @param Active    The Data is active and can be redeemed.
@@ -49,11 +51,8 @@ contract AssetContract is ERC721A, Ownable {
         string onChainUrl;
     }
 
-    /// @notice Mapping from address to approved owner.
-    mapping(address => bool) private _approveOwner;
-
     /// @notice Mapping from token ID to approved document types.
-    mapping(bytes32 => bool) private _approceDocTypes;
+    mapping(bytes32 => bool) private _approveDocType;
 
     /// @notice Mapping from Data hash to token ID.
     mapping(bytes32 => uint256) private _dataHashes;
@@ -98,13 +97,6 @@ contract AssetContract is ERC721A, Ownable {
     event Redeemed(uint256 tokenId, address redeemedBy);
 
     /**
-     * @dev Emitted when a Data's expiration date is extended.
-     * @param dataHash      The unique hash representing the Data data.
-     * @param extendDate    The new expiration date of the Data.
-     */
-    event DataExtended(bytes32 indexed dataHash, uint256 indexed extendDate);
-
-    /**
      * @dev Emitted when a document type is approved.
      * @param docTypeHash   The unique hash representing the document type.
      */
@@ -117,29 +109,9 @@ contract AssetContract is ERC721A, Ownable {
     constructor(
         string memory _name,
         string memory _symbol
-    ) ERC721A(_name, _symbol) Ownable(msg.sender) {}
-
-    /**
-     ** =============================================================================
-     **                                 MODIFIERS
-     ** =============================================================================
-     */
-    function _checkEligible(address _client) private view {
-        if (!_approveOwner[_client]) {
-            revert Unauthorized();
-        }
-    }
-
-    function _checkDocTypeApproves(bytes32 docType) private view {
-        if (!_approceDocTypes[docType]) {
-            revert DocumentNotApproved();
-        }
-    }
-
-    modifier _checkOwnerAndDocType(address _client, bytes32 docType) {
-        _checkEligible(_client);
-        _checkDocTypeApproves(docType);
-        _;
+    ) ERC721A(_name, _symbol) {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(MINTER_ROLE, msg.sender);
     }
 
     /**
@@ -155,26 +127,15 @@ contract AssetContract is ERC721A, Ownable {
      * Requirements:
      * - The document type must not already be approved.
      */
-    function approveDocType(string memory docType) external onlyOwner {
+    function approveDocType(
+        string memory docType
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
         bytes32 _docTypeHash = keccak256(abi.encode(docType));
-        if (_approceDocTypes[_docTypeHash]) {
+        if (_approveDocType[_docTypeHash]) {
             revert DocumentAlreadyApproved();
         }
-        _approceDocTypes[_docTypeHash] = true;
+        _approveDocType[_docTypeHash] = true;
         emit DocumentApproved(_docTypeHash);
-    }
-
-    /**
-     * @notice Approves an owner.
-     * @dev Can only be called by the contract owner.
-     * @param _client The address of the owner to be approved.
-     * @param status  The approval status of the owner.
-     *
-     * Requirements:
-     * - The owner must not already be approved.
-     */
-    function setApproveClient(address _client, bool status) external onlyOwner {
-        _approveOwner[_client] = status;
     }
 
     /**
@@ -199,18 +160,22 @@ contract AssetContract is ERC721A, Ownable {
         bytes32 docType,
         string memory assetData
     ) internal {
+        if (!_approveDocType[docType]) {
+            revert DocumentNotApproved();
+        }
+
         // Check if the data already exists
         if (_dataHashes[dataHash] != 0) {
             revert DataAlreadyExists();
         }
 
         // Check docType is approve or not
-        if (!_approceDocTypes[docType]) {
+        if (!_approveDocType[docType]) {
             revert DocumentNotApproved();
         }
 
         uint256 tokenId = _nextTokenId();
-        _mint(owner(), 1);
+        _mint(msg.sender, 1);
 
         uint256 _timeCreated = block.timestamp;
         _dataHashes[dataHash] = tokenId;
@@ -225,19 +190,22 @@ contract AssetContract is ERC721A, Ownable {
         emit DataIssued(tokenId, msg.sender, dataHash, docType, _timeCreated);
     }
 
-    function mintDataWithCheck(
-        bytes32 dataHash,
-        bytes32 docType,
-        string memory assetData
-    ) external _checkOwnerAndDocType(msg.sender, docType) {
-        _mintData(dataHash, docType, assetData);
-    }
-
+    /**
+     * @notice Mints a new asset data.
+     * @dev Can only be called by the contract owner.
+     *      Generates a unique hash for the data and ensures no duplicates.
+     *
+     * @param dataHash      The unique hash representing the data data.
+     * @param assetData     The user associated with the data.
+     *
+     * Requirements:
+     * - The data hash must not already exist.
+     */
     function mintData(
         bytes32 dataHash,
         bytes32 docType,
         string memory assetData
-    ) external {
+    ) external onlyRole(MINTER_ROLE) {
         _mintData(dataHash, docType, assetData);
     }
 
@@ -246,7 +214,7 @@ contract AssetContract is ERC721A, Ownable {
      * @dev Returns true if the data exists, is not expired, and has not been redeemed.
      * @param dataHash The unique hash representing the data data.
      */
-    function verifyData(bytes32 dataHash, bytes32 docType) external {
+    function verifyData(bytes32 dataHash, bytes32 docType) external onlyRole(MINTER_ROLE) {
         (Data memory _data, ) = _getTokenData(dataHash, docType);
         if (_data.assetStatus == AssetStatus.Redeemed) {
             revert DataAlreadyRedeemed();
@@ -270,7 +238,7 @@ contract AssetContract is ERC721A, Ownable {
         bytes32 dataHash,
         bytes32 docType,
         string memory url
-    ) external _checkOwnerAndDocType(msg.sender, docType) {
+    ) external onlyRole(MINTER_ROLE) {
         (, uint256 _tokenId) = _getTokenData(dataHash, docType);
         _assetData[_tokenId][docType].onChainUrl = url;
         emit SetDataURL(_tokenId, url);
@@ -286,10 +254,7 @@ contract AssetContract is ERC721A, Ownable {
      * - The data must not be expired.
      * - The data must not have been redeemed already.
      */
-    function redeemData(
-        bytes32 dataHash,
-        bytes32 docType
-    ) external _checkOwnerAndDocType(msg.sender, docType) {
+    function redeemData(bytes32 dataHash, bytes32 docType) external onlyRole(MINTER_ROLE) {
         (Data memory _data, uint256 _tokenId) = _getTokenData(
             dataHash,
             docType
@@ -372,7 +337,7 @@ contract AssetContract is ERC721A, Ownable {
 
     /**
      ** =============================================================================
-     **                              SOULBOND TOKEN
+     **                              SOULBOUND TOKEN
      ** =============================================================================
      */
 
@@ -409,7 +374,7 @@ contract AssetContract is ERC721A, Ownable {
     function approve(
         address to,
         uint256 tokenId
-    ) public payable override onlyOwner {
+    ) public payable override onlyRole(DEFAULT_ADMIN_ROLE) {
         if (to != address(0) && tokenId == 0) {
             revert TransferNotAllowed();
         }
@@ -440,5 +405,31 @@ contract AssetContract is ERC721A, Ownable {
      */
     function _startTokenId() internal view virtual override returns (uint256) {
         return 1;
+    }
+
+    function tokenURI(
+        uint256 tokenId
+    ) public view virtual override returns (string memory) {
+        if (!_exists(tokenId)) _revert(URIQueryForNonexistentToken.selector);
+        string memory json = string(
+            abi.encodePacked(
+                '{"name": "',
+                "Levy voucher",
+                " #",
+                _toString(tokenId),
+                '", "description": "NFT asset levy voucher", "image_url": "',
+                "https://ipfs.io/ipfs/bafybeicaouhp2cgwa2z6cv3sz2crhetiegrilvicmasoa2jfhoapnsdufq",
+                '"}'
+            )
+        );
+        return json;
+    }
+
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual override(ERC721A, AccessControl) returns (bool) {
+        return
+            ERC721A.supportsInterface(interfaceId) ||
+            AccessControl.supportsInterface(interfaceId);
     }
 }
