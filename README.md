@@ -110,3 +110,62 @@ Returns the timestamp when the data was created.
 **Code Style:** Use Prettier for formatting and write tests for new functionality.
 
 
+# Run Localhost
+
+## Prerequisites
+
+* Node.js (v14 or higher)
+* Yarn package manager
+* Hardhat installed in your project (`npm install --save-dev hardhat`)
+* Your project’s `package.json` must define the following scripts:
+  * `deploy-localhost`
+  * `setup-client`
+  * `setup-doctype`
+* You can adding `Minter Role` with adding new lines in `scripts/3_setup_client.ts`.
+* You can adding `Doc Type` with modified or adding new line in `scripts/4_setup_docType.ts`.
+
+## Script: `deploy-local.sh`
+
+This script will:
+1. Launch a Hardhat local node in the background.
+2. Wait until the node is ready on port `8545`.
+3. Run the following Yarn commands in sequence:
+
+   ```bash
+   yarn deploy-localhost
+   yarn setup-client --network localhost
+   yarn setup-doctype --network localhost
+   ```
+4. Keep the node running until you terminate the script.
+5. Automatically clean up (kill the Hardhat node) when you press `Ctrl+C` or when the script receives a termination signal.
+
+### Key Features
+
+* **Automatic readiness check**: Ensures commands run only after the node is up.
+* **Signal trapping**: Gracefully shuts down the Hardhat node on `SIGINT`/`SIGTERM`.
+* **Customizable**: Easily modify the Yarn commands or network settings as needed.
+
+## Usage
+
+1. Make the script executable:
+
+   ```bash
+   chmod +x deploy-local.sh
+   ```
+2. Run the script:
+
+   ```bash
+   ./deploy-local.sh
+   ```
+3. Once all steps finish, your local node will continue running. Press `Ctrl+C` to stop everything.
+
+## Customization
+
+* **Modify client**: If you want setup another minter please add new line in `scripts/3_setup_client.ts`.
+* **Modify doc**: If you want setup another doc please add new line in `scripts/4_setup_docType.ts`.
+* **Adjust commands**: Swap or append Yarn commands as your workflow requires.
+* **Remove wait**: If you prefer the script to exit after the commands, replace the `wait $NODE_PID` with `kill $NODE_PID` right after your commands.
+
+---
+
+*Happy coding!*
