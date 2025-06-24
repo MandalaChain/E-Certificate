@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity 0.8.24;
 
 import {ERC721A} from "erc721a/contracts/ERC721A.sol";
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {AccessControl, Context} from "@openzeppelin/contracts/access/AccessControl.sol";
+import {MetaTransaction} from "./utils/MetaTransaction.sol";
 
 error DataNotExist();
 error DataAlreadyExists();
@@ -20,7 +21,7 @@ error Unauthorized();
  * @dev ERC721A contract for managing asset Datas as soulbound tokens.
  *      Datas are issued, verified, redeemed, and extended, ensuring uniqueness and immutability.
  */
-contract AssetContract is ERC721A, AccessControl {
+contract AssetContract is ERC721A, AccessControl, MetaTransaction {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     /**
@@ -109,7 +110,7 @@ contract AssetContract is ERC721A, AccessControl {
     constructor(
         string memory _name,
         string memory _symbol
-    ) ERC721A(_name, _symbol) {
+    ) ERC721A(_name, _symbol) MetaTransaction(_name, "1") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MINTER_ROLE, msg.sender);
     }
@@ -160,10 +161,6 @@ contract AssetContract is ERC721A, AccessControl {
         bytes32 docType,
         string memory assetData
     ) internal {
-        if (!_approveDocType[docType]) {
-            revert DocumentNotApproved();
-        }
-
         // Check if the data already exists
         if (_dataHashes[dataHash] != 0) {
             revert DataAlreadyExists();
@@ -214,7 +211,10 @@ contract AssetContract is ERC721A, AccessControl {
      * @dev Returns true if the data exists, is not expired, and has not been redeemed.
      * @param dataHash The unique hash representing the data data.
      */
-    function verifyData(bytes32 dataHash, bytes32 docType) external onlyRole(MINTER_ROLE) {
+    function verifyData(
+        bytes32 dataHash,
+        bytes32 docType
+    ) external {
         (Data memory _data, ) = _getTokenData(dataHash, docType);
         if (_data.assetStatus == AssetStatus.Redeemed) {
             revert DataAlreadyRedeemed();
@@ -238,7 +238,7 @@ contract AssetContract is ERC721A, AccessControl {
         bytes32 dataHash,
         bytes32 docType,
         string memory url
-    ) external onlyRole(MINTER_ROLE) {
+    ) external {
         (, uint256 _tokenId) = _getTokenData(dataHash, docType);
         _assetData[_tokenId][docType].onChainUrl = url;
         emit SetDataURL(_tokenId, url);
@@ -254,7 +254,10 @@ contract AssetContract is ERC721A, AccessControl {
      * - The data must not be expired.
      * - The data must not have been redeemed already.
      */
-    function redeemData(bytes32 dataHash, bytes32 docType) external onlyRole(MINTER_ROLE) {
+    function redeemData(
+        bytes32 dataHash,
+        bytes32 docType
+    ) external onlyRole(MINTER_ROLE) {
         (Data memory _data, uint256 _tokenId) = _getTokenData(
             dataHash,
             docType
@@ -303,6 +306,15 @@ contract AssetContract is ERC721A, AccessControl {
         if (_tokenId == 0) revert DataNotExist();
         if (!_exists(_tokenId)) revert InvalidTokenId();
         return _assetData[_tokenId][docType].createdDated;
+    }
+
+    function executeMetaTransaction(
+        address _from,
+        uint256 _nonce,
+        bytes calldata _functionCall,
+        bytes calldata _signature
+    ) external {
+        _executeMetaTransaction(_from, _nonce, _functionCall, _signature);
     }
 
     /**
@@ -431,5 +443,14 @@ contract AssetContract is ERC721A, AccessControl {
         return
             ERC721A.supportsInterface(interfaceId) ||
             AccessControl.supportsInterface(interfaceId);
+    }
+
+    function _msgSender()
+        internal
+        view
+        override(MetaTransaction, Context)
+        returns (address)
+    {
+        return MetaTransaction._msgSender();
     }
 }

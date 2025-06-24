@@ -9,7 +9,7 @@ const CollectionConfig: CollectionConfigInterface = {
     tokenName: "Data Asset Digital",
     tokenSymbol: "DAD",
     tokenUri: "https://ipfs.io/ipfs/bafkreignrcvv2cwzpgmhpedqg7qpu6cp6qcixbi2ujzskcqkmeauud2rza",
-    contractAddress: "0x15D418654401315a2beD413ce8f558881f399208",
+    contractAddress: "0x499286f97CD0C925338b705e87dBd1465a8d61e1",
 };
 
 export default CollectionConfig;

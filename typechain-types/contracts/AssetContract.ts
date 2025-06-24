@@ -55,6 +55,8 @@ export interface AssetContractInterface extends Interface {
       | "approve"
       | "approveDocType"
       | "balanceOf"
+      | "eip712Domain"
+      | "executeMetaTransaction"
       | "getApproved"
       | "getAssetData"
       | "getDateMintingData"
@@ -64,6 +66,7 @@ export interface AssetContractInterface extends Interface {
       | "isApprovedForAll"
       | "mintData"
       | "name"
+      | "nonces"
       | "ownerOf"
       | "redeemData"
       | "renounceRole"
@@ -88,6 +91,8 @@ export interface AssetContractInterface extends Interface {
       | "DataIssued"
       | "DataValidated"
       | "DocumentApproved"
+      | "EIP712DomainChanged"
+      | "MetaTransactionExecuted"
       | "Redeemed"
       | "RoleAdminChanged"
       | "RoleGranted"
@@ -115,6 +120,14 @@ export interface AssetContractInterface extends Interface {
   encodeFunctionData(
     functionFragment: "balanceOf",
     values: [AddressLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "eip712Domain",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "executeMetaTransaction",
+    values: [AddressLike, BigNumberish, BytesLike, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "getApproved",
@@ -149,6 +162,7 @@ export interface AssetContractInterface extends Interface {
     values: [BytesLike, BytesLike, string]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
+  encodeFunctionData(functionFragment: "nonces", values: [AddressLike]): string;
   encodeFunctionData(
     functionFragment: "ownerOf",
     values: [BigNumberish]
@@ -218,6 +232,14 @@ export interface AssetContractInterface extends Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "eip712Domain",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "executeMetaTransaction",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getApproved",
     data: BytesLike
   ): Result;
@@ -241,6 +263,7 @@ export interface AssetContractInterface extends Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "mintData", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "nonces", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "ownerOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "redeemData", data: BytesLike): Result;
   decodeFunctionResult(
@@ -392,6 +415,29 @@ export namespace DocumentApprovedEvent {
   export type OutputTuple = [docTypeHash: string];
   export interface OutputObject {
     docTypeHash: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace EIP712DomainChangedEvent {
+  export type InputTuple = [];
+  export type OutputTuple = [];
+  export interface OutputObject {}
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace MetaTransactionExecutedEvent {
+  export type InputTuple = [user: AddressLike, functionCall: BytesLike];
+  export type OutputTuple = [user: string, functionCall: string];
+  export interface OutputObject {
+    user: string;
+    functionCall: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -558,6 +604,33 @@ export interface AssetContract extends BaseContract {
 
   balanceOf: TypedContractMethod<[owner: AddressLike], [bigint], "view">;
 
+  eip712Domain: TypedContractMethod<
+    [],
+    [
+      [string, string, string, bigint, string, string, bigint[]] & {
+        fields: string;
+        name: string;
+        version: string;
+        chainId: bigint;
+        verifyingContract: string;
+        salt: string;
+        extensions: bigint[];
+      }
+    ],
+    "view"
+  >;
+
+  executeMetaTransaction: TypedContractMethod<
+    [
+      _from: AddressLike,
+      _nonce: BigNumberish,
+      _functionCall: BytesLike,
+      _signature: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
+
   getApproved: TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
 
   getAssetData: TypedContractMethod<
@@ -599,6 +672,8 @@ export interface AssetContract extends BaseContract {
   >;
 
   name: TypedContractMethod<[], [string], "view">;
+
+  nonces: TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
 
   ownerOf: TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
 
@@ -697,6 +772,35 @@ export interface AssetContract extends BaseContract {
     nameOrSignature: "balanceOf"
   ): TypedContractMethod<[owner: AddressLike], [bigint], "view">;
   getFunction(
+    nameOrSignature: "eip712Domain"
+  ): TypedContractMethod<
+    [],
+    [
+      [string, string, string, bigint, string, string, bigint[]] & {
+        fields: string;
+        name: string;
+        version: string;
+        chainId: bigint;
+        verifyingContract: string;
+        salt: string;
+        extensions: bigint[];
+      }
+    ],
+    "view"
+  >;
+  getFunction(
+    nameOrSignature: "executeMetaTransaction"
+  ): TypedContractMethod<
+    [
+      _from: AddressLike,
+      _nonce: BigNumberish,
+      _functionCall: BytesLike,
+      _signature: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
     nameOrSignature: "getApproved"
   ): TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
   getFunction(
@@ -747,6 +851,9 @@ export interface AssetContract extends BaseContract {
   getFunction(
     nameOrSignature: "name"
   ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "nonces"
+  ): TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
   getFunction(
     nameOrSignature: "ownerOf"
   ): TypedContractMethod<[tokenId: BigNumberish], [string], "view">;
@@ -874,6 +981,20 @@ export interface AssetContract extends BaseContract {
     DocumentApprovedEvent.OutputObject
   >;
   getEvent(
+    key: "EIP712DomainChanged"
+  ): TypedContractEvent<
+    EIP712DomainChangedEvent.InputTuple,
+    EIP712DomainChangedEvent.OutputTuple,
+    EIP712DomainChangedEvent.OutputObject
+  >;
+  getEvent(
+    key: "MetaTransactionExecuted"
+  ): TypedContractEvent<
+    MetaTransactionExecutedEvent.InputTuple,
+    MetaTransactionExecutedEvent.OutputTuple,
+    MetaTransactionExecutedEvent.OutputObject
+  >;
+  getEvent(
     key: "Redeemed"
   ): TypedContractEvent<
     RedeemedEvent.InputTuple,
@@ -981,6 +1102,28 @@ export interface AssetContract extends BaseContract {
       DocumentApprovedEvent.InputTuple,
       DocumentApprovedEvent.OutputTuple,
       DocumentApprovedEvent.OutputObject
+    >;
+
+    "EIP712DomainChanged()": TypedContractEvent<
+      EIP712DomainChangedEvent.InputTuple,
+      EIP712DomainChangedEvent.OutputTuple,
+      EIP712DomainChangedEvent.OutputObject
+    >;
+    EIP712DomainChanged: TypedContractEvent<
+      EIP712DomainChangedEvent.InputTuple,
+      EIP712DomainChangedEvent.OutputTuple,
+      EIP712DomainChangedEvent.OutputObject
+    >;
+
+    "MetaTransactionExecuted(address,bytes)": TypedContractEvent<
+      MetaTransactionExecutedEvent.InputTuple,
+      MetaTransactionExecutedEvent.OutputTuple,
+      MetaTransactionExecutedEvent.OutputObject
+    >;
+    MetaTransactionExecuted: TypedContractEvent<
+      MetaTransactionExecutedEvent.InputTuple,
+      MetaTransactionExecutedEvent.OutputTuple,
+      MetaTransactionExecutedEvent.OutputObject
     >;
 
     "Redeemed(uint256,address)": TypedContractEvent<
