@@ -8,6 +8,7 @@ export default interface CollectionConfigInterface {
     tokenName: string;
     tokenSymbol: string;
     tokenUri: string;
+    contractLocal: string;
     contractAddress: string|null;
     //marketplaceIdentifier: string;
     //marketplaceConfig: MarketplaceConfigInterface;
